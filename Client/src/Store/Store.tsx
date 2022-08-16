@@ -1,21 +1,23 @@
 import { makeAutoObservable, toJS, runInAction } from "mobx";
 import { io } from "socket.io-client";
 
-const ENDPOINT = "http://http://localhost:3000";
+const ENDPOINT = "//localhost:3001/";
 
 class Store {
-    isConnected = false;
-    socket = io(ENDPOINT, { transports: ["websocket"] });
+    socket = io();
+    roomId = "";
     constructor() {
         makeAutoObservable(this);
     }
 
-    initSocket() {
-        if (this.socket) return;
+    connectSocket() {
+        if (this.socket?.connected) return;
         this.socket = io(ENDPOINT, { transports: ["websocket"] });
-        runInAction(() => {
-            this.isConnected = true;
-        });
+    }
+
+    disconnectSocket() {
+        if (this.socket?.connected) return;
+        this.socket.disconnect();
     }
 }
 
