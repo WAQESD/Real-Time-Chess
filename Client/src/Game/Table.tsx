@@ -1,35 +1,65 @@
 import { useStore } from "Store";
 import { observer } from "mobx-react";
 import { css } from "@emotion/react";
+import { useEffect } from "react";
 /** @jsxImportSource @emotion/react */
+
+const white = css`
+    background-color: #f0d9b5;
+    margin: 0;
+    padding: 0;
+    cursor: pointer;
+    text-align: center;
+`;
+const black = css`
+    background-color: #b58863;
+    margin: 0;
+    padding: 0;
+    cursor: pointer;
+    text-align: center;
+`;
+const focus = css`
+    background-color: #f8ec5b;
+    margin: 0;
+    padding: 0;
+    cursor: pointer;
+    text-align: center;
+`;
+
+const canMoveNow = css`
+    background-color: #e0d030;
+    margin: 0;
+    padding: 0;
+    cursor: pointer;
+    text-align: center;
+`;
 
 const Table = observer(() => {
     const { Store } = useStore();
-    const makeTableComponent = () => {
-        const tableSize = Math.floor(
+    const getCSSbyPosition = (column: number, row: number) => {
+        if (Store.Pieces[row][column].isFocused) return focus;
+        else if (Store.Pieces[row][column].canMoveNow) return canMoveNow;
+        else return (column + row) % 2 ? black : white;
+    };
+
+    const handleResize = () => {
+        Store.tableSize = Math.floor(
             Math.min(window.innerWidth, window.innerHeight)
         );
+    };
+    useEffect(() => {
+        window.addEventListener("resize", handleResize);
+        return () => {
+            window.removeEventListener("resize", handleResize);
+        };
+    });
 
-        const white = css`
-            background-color: #f0d9b5;
-            margin: 0;
-            padding: 0;
-            cursor: pointer;
-            text-align: center;
-        `;
-        const black = css`
-            background-color: #b58863;
-            margin: 0;
-            padding: 0;
-            cursor: pointer;
-            text-align: center;
-        `;
-
+    const makeTableComponent = () => {
         return (
             <table
                 style={{
-                    width: tableSize,
-                    height: tableSize,
+                    width: Store.tableSize,
+                    height: Store.tableSize,
                     borderCollapse: "collapse",
                 }}
             >
@@ -38,13 +68,16 @@ const Table = observer(() => {
                         <tr key={num}>
                             {"abcdefgh".split("").map((alp, column) => (
                                 <td
-                                    css={(column + row) % 2 ? white : black}
+                                    css={getCSSbyPosition(column, row)}
                                     id={`${alp}${num}`}
                                     key={`${alp}${num}`}
+                                    onClick={() =>
+                                        Store.setFocused(column, row)
+                                    }
                                 >
                                     <img
-                                        width={tableSize / 10}
-                                        height={tableSize / 10}
+                                        width={Store.tableSize / 10}
+                                        height={Store.tableSize / 10}
                                         src={`img/Chess_${
                                             Store.Pieces[row][column].name
                                         }_${
@@ -61,6 +94,7 @@ const Table = observer(() => {
             </table>
         );
     };
+
     return makeTableComponent();
 });
 

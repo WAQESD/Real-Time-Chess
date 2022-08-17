@@ -2,6 +2,8 @@ export interface Piece {
     name: string;
     isMoved: boolean;
     isWhite: boolean;
+    isFocused: boolean;
+    canMoveNow: boolean;
 }
 
 const pawn: (isWhite: boolean) => Piece = (isWhite) => {
@@ -9,6 +11,8 @@ const pawn: (isWhite: boolean) => Piece = (isWhite) => {
         name: "pawn",
         isMoved: false,
         isWhite: isWhite,
+        isFocused: false,
+        canMoveNow: false,
     };
 };
 
@@ -17,6 +21,8 @@ const rook: (isWhite: boolean) => Piece = (isWhite) => {
         name: "rook",
         isMoved: false,
         isWhite: isWhite,
+        isFocused: false,
+        canMoveNow: false,
     };
 };
 
@@ -25,6 +31,8 @@ const bishop: (isWhite: boolean) => Piece = (isWhite) => {
         name: "bishop",
         isMoved: false,
         isWhite: isWhite,
+        isFocused: false,
+        canMoveNow: false,
     };
 };
 
@@ -33,6 +41,8 @@ const knight: (isWhite: boolean) => Piece = (isWhite) => {
         name: "knight",
         isMoved: false,
         isWhite: isWhite,
+        isFocused: false,
+        canMoveNow: false,
     };
 };
 
@@ -41,6 +51,8 @@ const queen: (isWhite: boolean) => Piece = (isWhite) => {
         name: "queen",
         isMoved: false,
         isWhite: isWhite,
+        isFocused: false,
+        canMoveNow: false,
     };
 };
 
@@ -49,6 +61,8 @@ const king: (isWhite: boolean) => Piece = (isWhite) => {
         name: "king",
         isMoved: false,
         isWhite: isWhite,
+        isFocused: false,
+        canMoveNow: false,
     };
 };
 
@@ -57,6 +71,8 @@ const empty: () => Piece = () => {
         name: "empty",
         isMoved: false,
         isWhite: false,
+        isFocused: false,
+        canMoveNow: false,
     };
 };
 
