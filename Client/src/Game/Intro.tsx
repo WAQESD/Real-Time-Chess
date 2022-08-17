@@ -9,8 +9,11 @@ const Intro = observer(() => {
             Store.socket.emit(
                 "makeNewGame",
                 Store.socket.id,
-                (response: string) => {
-                    console.log(response);
+                (bool: boolean) => {
+                    Store.isWhite = true;
+                    Store.setPieces();
+                    Store.setInGame(bool);
+                    Store.setIsHost(bool);
                 }
             );
         } else console.error("server is not connected");
@@ -21,8 +24,10 @@ const Intro = observer(() => {
                 "enterGame",
                 Store.roomId,
                 Store.socket.id,
-                (response: string) => {
-                    console.log(response);
+                (bool: boolean) => {
+                    Store.isWhite = false;
+                    Store.setPieces();
+                    Store.setInGame(bool);
                 }
             );
         } else console.error("server is not connected");

@@ -20,33 +20,42 @@ const openNewRoom = (hostID) => {
     const idx = rooms.findIndex((room) => hostID === room.hostID);
     if (idx > -1) return false;
     rooms.push({ hostID, guestID: null });
+    console.log(`${hostID} open new room.`);
     return true;
 };
 
-const closeRoom = (hostID) => {
+const closeGame = (hostID) => {
     const idx = rooms.findIndex((room) => hostID === room.hostID);
-    if (idx < 0) return;
+    if (idx < 0) return false;
     rooms.splice(idx, 1);
+    console.log(`${hostID} close the room`);
+    return true;
 };
 
 const enterRoom = (hostID, guestID) => {
     const idx = rooms.findIndex((room) => hostID === room.hostID);
     if (idx < 0) return false;
     rooms[idx].guestID = guestID;
+    console.log(`${guestID} enter ${hostID}'s room.`);
     return true;
 };
 
 io.on("connection", (socket) => {
     socket.on("makeNewGame", (hostID, callback) => {
-        if (openNewRoom(hostID)) callback(`${hostID}'s room opened`);
-        else callback("already room opened");
+        if (openNewRoom(hostID)) callback(true);
+        else callback(false);
     });
 });
 
 io.on("connection", (socket) => {
     socket.on("enterGame", (hostID, guestID, callback) => {
-        if (enterRoom(hostID, guestID))
-            callback(`${guestID} enter ${hostID}'s room`);
-        else callback("There is no room for that ID");
+        if (enterRoom(hostID, guestID)) callback(true);
+        else callback(false);
+    });
+});
+
+io.on("connection", (socket) => {
+    socket.on("closeGame", (hostID, callback) => {
+        if (closeGame(hostID)) callback(false);
     });
 });
