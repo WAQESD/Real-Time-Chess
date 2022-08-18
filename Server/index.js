@@ -7,10 +7,8 @@ const { Server } = require("socket.io");
 const io = new Server(server);
 
 const rooms = [];
-
-io.on("connection", (socket) => {
-    console.log(`${socket.id} connected`);
-});
+const enemy = {};
+const socketById = {};
 
 server.listen(3001, () => {
     console.log("listening on *:3001");
@@ -36,26 +34,29 @@ const enterRoom = (hostID, guestID) => {
     const idx = rooms.findIndex((room) => hostID === room.hostID);
     if (idx < 0) return false;
     rooms[idx].guestID = guestID;
+    enemy[guestID] = hostID;
+    enemy[hostID] = guestID;
     console.log(`${guestID} enter ${hostID}'s room.`);
     return true;
 };
 
 io.on("connection", (socket) => {
+    console.log(`${socket.id} connected`);
+    socketById[socket.id] = socket;
+
     socket.on("makeNewGame", (hostID, callback) => {
         if (openNewRoom(hostID)) callback(true);
         else callback(false);
     });
-});
-
-io.on("connection", (socket) => {
     socket.on("enterGame", (hostID, guestID, callback) => {
         if (enterRoom(hostID, guestID)) callback(true);
         else callback(false);
     });
-});
-
-io.on("connection", (socket) => {
     socket.on("closeGame", (hostID, callback) => {
         if (closeGame(hostID)) callback(false);
+    });
+    socket.on("pieceMove", (playerID, { column, row }, callback) => {
+        socketById[enemy[playerID]].emit("pieceMove", { column, row });
+        callback();
     });
 });
