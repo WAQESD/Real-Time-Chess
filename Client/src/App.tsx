@@ -8,21 +8,6 @@ const store = new Store();
 const App = () => {
     useEffect(() => {
         store.connectSocket();
-        return () => {
-            if (store.socket?.connected) {
-                if (store.isHost) {
-                    store.socket.emit(
-                        "closeGame",
-                        store.socket.id,
-                        (bool: boolean) => {
-                            store.setInGame(bool);
-                            store.setIsHost(bool);
-                        }
-                    );
-                }
-                store.disconnectSocket();
-            }
-        };
     });
     return (
         <Provider Store={store}>

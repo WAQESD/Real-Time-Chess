@@ -1,6 +1,7 @@
 import { useStore } from "Store";
 import { observer } from "mobx-react";
 import { css } from "@emotion/react";
+import { toJS } from "mobx";
 import { useEffect } from "react";
 /** @jsxImportSource @emotion/react */
 
@@ -42,11 +43,35 @@ const Table = observer(() => {
         else return (column + row) % 2 ? black : white;
     };
 
+    const onClick = (column: number, row: number) => {
+        if (Store.Pieces[row][column].canMoveNow) {
+            if (Store.socket?.connected) {
+                const from = {
+                    column: toJS(Store.focused).column,
+                    row: toJS(Store.focused).row,
+                };
+                const to = { column, row };
+                Store.socket.emit(
+                    "pieceMove",
+                    Store.socket.id,
+                    {
+                        from,
+                        to,
+                    },
+                    () => {
+                        Store.moveTo(from, to);
+                    }
+                );
+            } else console.error("server is not connected");
+        } else Store.setFocused(column, row);
+    };
+
     const handleResize = () => {
         Store.tableSize = Math.floor(
             Math.min(window.innerWidth, window.innerHeight)
         );
     };
+
     useEffect(() => {
         window.addEventListener("resize", handleResize);
         return () => {
@@ -71,9 +96,7 @@ const Table = observer(() => {
                                     css={getCSSbyPosition(column, row)}
                                     id={`${alp}${num}`}
                                     key={`${alp}${num}`}
-                                    onClick={() =>
-                                        Store.setFocused(column, row)
-                                    }
+                                    onClick={() => onClick(column, row)}
                                 >
                                     <img
                                         width={Store.tableSize / 10}

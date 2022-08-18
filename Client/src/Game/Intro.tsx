@@ -35,6 +35,7 @@ const Intro = observer(() => {
 
     return (
         <>
+            <Spacing spacing={16} />
             <button onClick={makeNewGame}>게임 생성하기</button>
             <Spacing spacing={8} />
             <div style={{ display: "flex", flexDirection: "column" }}>

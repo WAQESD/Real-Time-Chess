@@ -1,7 +1,16 @@
 import { makeAutoObservable, toJS, reaction, runInAction } from "mobx";
 import { Piece, whiteSetUp, blackSetUp } from "Constants/defaultSetting";
-import { knightMove, kingMove } from "Constants/pieceMove";
+import {
+    knightMove,
+    kingMove,
+    queenMove,
+    rookMove,
+    bishopMove,
+} from "Constants/pieceMove";
 import { io } from "socket.io-client";
+import { isInTable } from "Utils/isInTable";
+import { empty } from "Constants/defaultSetting";
+import { Position, flipPosition } from "Utils/flipPosition";
 
 const ENDPOINT = "//localhost:3001/";
 
@@ -20,6 +29,16 @@ class Store {
         makeAutoObservable(this);
 
         reaction(
+            () => this.inGame,
+            (inGame) => {
+                if (inGame == false) return;
+                this.socket.on("pieceMove", ({ from, to }) => {
+                    this.moveTo(flipPosition(from), flipPosition(to));
+                });
+            }
+        );
+
+        reaction(
             () => this.focused,
             (focused) => {
                 for (let row = 0; row < 8; row++) {
@@ -28,6 +47,7 @@ class Store {
                 }
                 let column = toJS(focused).column;
                 let row = toJS(focused).row;
+                if (isInTable(row, column) === false) return;
                 let PieceType = this.Pieces[row][column].name;
                 if (
                     PieceType === "empty" ||
@@ -35,18 +55,26 @@ class Store {
                 )
                     return;
                 else if (PieceType === "pawn") {
-                    this.Pieces[row - 1][column].canMoveNow = true;
-                    if (this.Pieces[row - 1][column].isMoved === false)
-                        this.Pieces[row - 2][column].canMoveNow = true;
+                    if (
+                        isInTable(row - 1, column) &&
+                        this.Pieces[row - 1][column].name === "empty"
+                    ) {
+                        this.Pieces[row - 1][column].canMoveNow = true;
+                        if (
+                            this.Pieces[row][column].isMoved === false &&
+                            isInTable(row - 2, column) &&
+                            this.Pieces[row - 2][column].name === "empty"
+                        )
+                            this.Pieces[row - 2][column].canMoveNow = true;
+                    }
                 } else if (PieceType === "knight") {
                     knightMove.forEach(({ x, y }) => {
                         if (
-                            row + y < 0 ||
-                            row + y >= 8 ||
-                            column + x < 0 ||
-                            column + x >= 8 ||
-                            this.Pieces[row + y][column + x].isWhite ===
-                                this.isWhite
+                            isInTable(row + y, column + x) === false ||
+                            (this.Pieces[row + y][column + x].name !==
+                                "empty" &&
+                                this.Pieces[row + y][column + x].isWhite ===
+                                    this.isWhite)
                         )
                             return;
                         this.Pieces[row + y][column + x].canMoveNow = true;
@@ -54,19 +82,113 @@ class Store {
                 } else if (PieceType === "king") {
                     kingMove.forEach(({ x, y }) => {
                         if (
-                            row + y < 0 ||
-                            row + y >= 8 ||
-                            column + x < 0 ||
-                            column + x >= 8 ||
-                            this.Pieces[row + y][column + x].isWhite ===
-                                this.isWhite
+                            isInTable(row + y, column + x) === false ||
+                            (this.Pieces[row + y][column + x].name !==
+                                "empty" &&
+                                this.Pieces[row + y][column + x].isWhite ===
+                                    this.isWhite)
                         )
                             return;
                         this.Pieces[row + y][column + x].canMoveNow = true;
                     });
+                } else if (PieceType === "queen") {
+                    for (let dir = 0; dir < queenMove.dir; dir++) {
+                        let nextColumn = column + queenMove.dx[dir];
+                        let nextRow = row + queenMove.dy[dir];
+                        while (isInTable(nextRow, nextColumn)) {
+                            if (
+                                this.Pieces[nextRow][nextColumn].name !==
+                                "empty"
+                            ) {
+                                if (
+                                    this.Pieces[nextRow][nextColumn].isWhite !==
+                                    this.isWhite
+                                )
+                                    this.Pieces[nextRow][
+                                        nextColumn
+                                    ].canMoveNow = true;
+                                break;
+                            } else {
+                                this.Pieces[nextRow][nextColumn].canMoveNow =
+                                    true;
+                                nextColumn = nextColumn + queenMove.dx[dir];
+                                nextRow = nextRow + queenMove.dy[dir];
+                            }
+                        }
+                    }
+                } else if (PieceType === "rook") {
+                    for (let dir = 0; dir < rookMove.dir; dir++) {
+                        let nextColumn = column + rookMove.dx[dir];
+                        let nextRow = row + rookMove.dy[dir];
+                        while (isInTable(nextRow, nextColumn)) {
+                            if (
+                                this.Pieces[nextRow][nextColumn].name !==
+                                "empty"
+                            ) {
+                                if (
+                                    this.Pieces[nextRow][nextColumn].isWhite !==
+                                    this.isWhite
+                                )
+                                    this.Pieces[nextRow][
+                                        nextColumn
+                                    ].canMoveNow = true;
+                                break;
+                            } else {
+                                this.Pieces[nextRow][nextColumn].canMoveNow =
+                                    true;
+                                nextColumn = nextColumn + rookMove.dx[dir];
+                                nextRow = nextRow + rookMove.dy[dir];
+                            }
+                        }
+                    }
+                } else if (PieceType === "bishop") {
+                    for (let dir = 0; dir < bishopMove.dir; dir++) {
+                        let nextColumn = column + bishopMove.dx[dir];
+                        let nextRow = row + bishopMove.dy[dir];
+                        while (isInTable(nextRow, nextColumn)) {
+                            if (
+                                this.Pieces[nextRow][nextColumn].name !==
+                                "empty"
+                            ) {
+                                if (
+                                    this.Pieces[nextRow][nextColumn].isWhite !==
+                                    this.isWhite
+                                )
+                                    this.Pieces[nextRow][
+                                        nextColumn
+                                    ].canMoveNow = true;
+                                break;
+                            } else {
+                                this.Pieces[nextRow][nextColumn].canMoveNow =
+                                    true;
+                                nextColumn = nextColumn + bishopMove.dx[dir];
+                                nextRow = nextRow + bishopMove.dy[dir];
+                            }
+                        }
+                    }
                 }
             }
         );
+    }
+    moveTo(from: Position, to: Position) {
+        runInAction(() => {
+            this.setPiece(
+                to.column,
+                to.row,
+                this.Pieces[from.row][from.column]
+            );
+        });
+        runInAction(() => {
+            this.setPiece(from.column, from.row, empty());
+        });
+        runInAction(() => {
+            this.setFocused(-1, -1);
+        });
+    }
+    setPiece(column: number, row: number, newPiece: Piece) {
+        this.Pieces[row][column].name = newPiece.name;
+        this.Pieces[row][column].isWhite = newPiece.isWhite;
+        this.Pieces[row][column].isMoved = true;
     }
 
     setFocused(column: number, row: number) {
@@ -77,7 +199,7 @@ class Store {
         }
 
         this.focused = { column, row };
-        this.Pieces[row][column].isFocused = true;
+        if (isInTable(row, column)) this.Pieces[row][column].isFocused = true;
     }
 
     setPieces() {

@@ -66,7 +66,7 @@ const king: (isWhite: boolean) => Piece = (isWhite) => {
     };
 };
 
-const empty: () => Piece = () => {
+export const empty: () => Piece = () => {
     return {
         name: "empty",
         isMoved: false,
