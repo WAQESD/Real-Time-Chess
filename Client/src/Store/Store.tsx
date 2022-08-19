@@ -24,11 +24,22 @@ class Store {
     isHost = false;
     isWhite = false;
     isModal = false;
+    isMyTurn = false;
+    windowWidth = window.innerWidth;
+    windowHeight = window.innerHeight;
     modalContents = (<></>);
     Pieces: Array<Array<Piece>> = [[]];
-    tableSize = Math.min(window.innerWidth, window.innerHeight);
     focused = { column: -1, row: -1 };
     gameLog: Array<gameLog> = [];
+
+    get infoSize() {
+        return (
+            (Math.max(this.windowWidth, this.windowHeight) - this.tableSize) / 2
+        );
+    }
+    get tableSize() {
+        return Math.min(this.windowWidth, this.windowHeight);
+    }
 
     constructor() {
         makeAutoObservable(this);
@@ -37,6 +48,9 @@ class Store {
             () => this.inGame,
             (inGame) => {
                 if (inGame == false) return;
+                runInAction(() => {
+                    this.isMyTurn = true;
+                });
                 this.socket.on("pieceMove", ({ from, to }) => {
                     this.moveTo(flipPosition(from), flipPosition(to));
                 });
@@ -148,6 +162,16 @@ class Store {
             }
         );
     }
+
+    resizeAction() {
+        runInAction(() => {
+            this.windowWidth = window.innerWidth;
+        });
+        runInAction(() => {
+            this.windowHeight = window.innerHeight;
+        });
+    }
+
     moveTo(from: Position, to: Position) {
         runInAction(() => {
             this.gameLog.push({
@@ -175,6 +199,9 @@ class Store {
         });
         runInAction(() => {
             this.setPiece(from.column, from.row, empty());
+        });
+        runInAction(() => {
+            this.isMyTurn = false;
         });
     }
     setPiece(column: number, row: number, newPiece: Piece) {

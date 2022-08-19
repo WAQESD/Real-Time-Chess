@@ -1,8 +1,7 @@
 import { useStore } from "Store";
 import { observer } from "mobx-react";
 import { css } from "@emotion/react";
-import { toJS } from "mobx";
-import { useEffect } from "react";
+import { toJS, runInAction } from "mobx";
 /** @jsxImportSource @emotion/react */
 
 const white = css`
@@ -46,6 +45,7 @@ const Table = observer(() => {
     const onClick = (column: number, row: number) => {
         if (Store.Pieces[row][column].canMoveNow) {
             if (Store.socket?.connected) {
+                if (Store.isMyTurn === false) return;
                 const from = {
                     column: toJS(Store.focused).column,
                     row: toJS(Store.focused).row,
@@ -62,22 +62,14 @@ const Table = observer(() => {
                         Store.moveTo(from, to);
                     }
                 );
+                Store.socket.emit("waitMyTurn", () => {
+                    runInAction(() => {
+                        Store.isMyTurn = true;
+                    });
+                });
             } else console.error("server is not connected");
         } else Store.setFocused(column, row);
     };
-
-    const handleResize = () => {
-        Store.tableSize = Math.floor(
-            Math.min(window.innerWidth, window.innerHeight)
-        );
-    };
-
-    useEffect(() => {
-        window.addEventListener("resize", handleResize);
-        return () => {
-            window.removeEventListener("resize", handleResize);
-        };
-    });
 
     const makeTableComponent = () => {
         return (
@@ -86,6 +78,7 @@ const Table = observer(() => {
                     width: Store.tableSize,
                     height: Store.tableSize,
                     borderCollapse: "collapse",
+                    border: `2px solid ${Store.isMyTurn ? "green" : "red"} `,
                 }}
             >
                 <tbody>
