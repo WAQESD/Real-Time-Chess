@@ -12,6 +12,7 @@ import {
     rookMove,
     bishopMove,
 } from "Constants/pieceMove";
+import { Promotion } from "Components";
 
 const ENDPOINT = "//localhost:3001/";
 
@@ -22,6 +23,8 @@ class Store {
     isMatched = false;
     isHost = false;
     isWhite = false;
+    isModal = false;
+    modalContents = (<></>);
     Pieces: Array<Array<Piece>> = [[]];
     tableSize = Math.min(window.innerWidth, window.innerHeight);
     focused = { column: -1, row: -1 };
@@ -71,12 +74,16 @@ class Store {
                     }
                     if (
                         isInTable(row - 1, column - 1) &&
-                        this.Pieces[row - 1][column - 1].name !== "empty"
+                        this.Pieces[row - 1][column - 1].name !== "empty" &&
+                        this.Pieces[row - 1][column - 1].isWhite !==
+                            this.isWhite
                     )
                         this.Pieces[row - 1][column - 1].canMoveNow = true;
                     if (
                         isInTable(row - 1, column + 1) &&
-                        this.Pieces[row - 1][column + 1].name !== "empty"
+                        this.Pieces[row - 1][column + 1].name !== "empty" &&
+                        this.Pieces[row - 1][column + 1].isWhite !==
+                            this.isWhite
                     )
                         this.Pieces[row - 1][column + 1].canMoveNow = true;
                 } else if (PieceType === "knight") {
@@ -149,8 +156,16 @@ class Store {
                 from: from,
                 to: to,
             });
-            console.log(toJS(this.gameLog));
         });
+        if (
+            this.Pieces[from.row][from.column].isWhite === this.isWhite ||
+            (toJS(this.focused).column === to.column &&
+                toJS(this.focused).row === to.row)
+        ) {
+            runInAction(() => {
+                this.setFocused(-1, -1);
+            });
+        }
         runInAction(() => {
             this.setPiece(
                 to.column,
@@ -161,14 +176,29 @@ class Store {
         runInAction(() => {
             this.setPiece(from.column, from.row, empty());
         });
-        runInAction(() => {
-            this.setFocused(-1, -1);
-        });
     }
     setPiece(column: number, row: number, newPiece: Piece) {
         this.Pieces[row][column].name = newPiece.name;
         this.Pieces[row][column].isWhite = newPiece.isWhite;
         this.Pieces[row][column].isMoved = true;
+        if (
+            row === 0 &&
+            newPiece.name === "pawn" &&
+            newPiece.isWhite === this.isWhite
+        ) {
+            this.isModal = true;
+            this.modalContents = (
+                <Promotion
+                    isWhite={this.isWhite}
+                    setNewPiece={(pieceName) => {
+                        this.Pieces[row][column].name = pieceName;
+                    }}
+                    closeModal={() => {
+                        this.isModal = false;
+                    }}
+                ></Promotion>
+            );
+        }
     }
 
     setFocused(column: number, row: number) {
