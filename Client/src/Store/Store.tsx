@@ -25,6 +25,7 @@ class Store {
     isWhite = false;
     isModal = false;
     isMyTurn = false;
+    lastTime = 0;
     windowWidth = window.innerWidth;
     windowHeight = window.innerHeight;
     modalContents = (<></>);
@@ -33,16 +34,38 @@ class Store {
     gameLog: Array<gameLog> = [];
 
     get infoSize() {
-        return (
-            (Math.max(this.windowWidth, this.windowHeight) - this.tableSize) / 2
+        return Math.max(
+            190,
+            (Math.max(this.windowWidth, this.windowHeight) -
+                Math.min(this.windowWidth, this.windowHeight)) /
+                2
         );
     }
     get tableSize() {
-        return Math.min(this.windowWidth, this.windowHeight);
+        return (
+            Math.max(this.windowWidth, this.windowHeight) - 2 * this.infoSize
+        );
     }
 
     constructor() {
         makeAutoObservable(this);
+
+        reaction(
+            () => this.isMyTurn,
+            (isMyTurn) => {
+                if (isMyTurn) runInAction(() => (this.lastTime = 0));
+                else {
+                    runInAction(() => (this.lastTime = 3000));
+
+                    let intervalId = setInterval(() => {
+                        this.reduceLastTime();
+                    }, 10);
+                    setTimeout(() => {
+                        clearInterval(intervalId);
+                    }, 3000);
+                }
+            }
+        );
 
         reaction(
             () => this.inGame,
@@ -161,6 +184,10 @@ class Store {
                 }
             }
         );
+    }
+    reduceLastTime() {
+        if (this.lastTime == 0) return;
+        this.lastTime -= 10;
     }
 
     resizeAction() {

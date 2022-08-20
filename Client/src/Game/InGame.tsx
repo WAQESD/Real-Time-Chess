@@ -38,8 +38,6 @@ const InGame = observer(() => {
             }
         >
             <UserInfo
-                infoSize={Store.infoSize}
-                tableSize={Store.tableSize}
                 isRow={Store.windowHeight < Store.windowWidth}
                 isWhite={!Store.isWhite}
                 isMine={false}
@@ -48,8 +46,6 @@ const InGame = observer(() => {
             ></UserInfo>
             <Table></Table>
             <UserInfo
-                infoSize={Store.infoSize}
-                tableSize={Store.tableSize}
                 isRow={Store.windowHeight < Store.windowWidth}
                 isWhite={Store.isWhite}
                 isMine={true}
