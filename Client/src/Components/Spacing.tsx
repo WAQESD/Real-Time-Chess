@@ -9,7 +9,7 @@ const Spacing = ({ spacing }: Props) => {
     return (
         <div
             css={css`
-                margin-bottom: ${spacing}px;
+                margin: ${spacing}px;
             `}
         ></div>
     );

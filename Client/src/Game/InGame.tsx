@@ -1,7 +1,7 @@
 import { observer } from "mobx-react";
 import { useStore } from "Store";
 import { useEffect } from "react";
-import { RowUserInfo, ColumnUserInfo } from "Components";
+import { UserInfo } from "Components";
 import { Table } from "Game";
 import { css } from "@emotion/react";
 
@@ -12,13 +12,11 @@ const InGame = observer(() => {
     const rowContainer = css`
         display: flex;
         flex-direction: row;
-        background-color: ${Store.isMyTurn ? "green" : "red"};
     `;
     const columnContainer = css`
         display: flex;
         flex-direction: column;
         align-items: center;
-        background-color: ${Store.isMyTurn ? "green" : "red"};
     `;
     const handleResize = () => {
         Store.resizeAction();
@@ -32,33 +30,33 @@ const InGame = observer(() => {
     });
 
     return (
-        <>
-            {Store.windowHeight > Store.windowWidth ? (
-                <div css={columnContainer}>
-                    <ColumnUserInfo
-                        infoSize={Store.infoSize}
-                        tableSize={Store.tableSize}
-                    ></ColumnUserInfo>
-                    <Table></Table>
-                    <ColumnUserInfo
-                        infoSize={Store.infoSize}
-                        tableSize={Store.tableSize}
-                    ></ColumnUserInfo>
-                </div>
-            ) : (
-                <div css={rowContainer}>
-                    <RowUserInfo
-                        infoSize={Store.infoSize}
-                        tableSize={Store.tableSize}
-                    ></RowUserInfo>
-                    <Table></Table>
-                    <RowUserInfo
-                        infoSize={Store.infoSize}
-                        tableSize={Store.tableSize}
-                    ></RowUserInfo>
-                </div>
-            )}
-        </>
+        <div
+            css={
+                Store.windowHeight < Store.windowWidth
+                    ? rowContainer
+                    : columnContainer
+            }
+        >
+            <UserInfo
+                infoSize={Store.infoSize}
+                tableSize={Store.tableSize}
+                isRow={Store.windowHeight < Store.windowWidth}
+                isWhite={!Store.isWhite}
+                isMine={false}
+                padding={24}
+                fontSize={12}
+            ></UserInfo>
+            <Table></Table>
+            <UserInfo
+                infoSize={Store.infoSize}
+                tableSize={Store.tableSize}
+                isRow={Store.windowHeight < Store.windowWidth}
+                isWhite={Store.isWhite}
+                isMine={true}
+                padding={24}
+                fontSize={12}
+            ></UserInfo>
+        </div>
     );
 });
 

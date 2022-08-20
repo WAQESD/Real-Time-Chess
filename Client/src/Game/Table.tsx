@@ -45,7 +45,7 @@ const Table = observer(() => {
     const onClick = (column: number, row: number) => {
         if (Store.Pieces[row][column].canMoveNow) {
             if (Store.socket?.connected) {
-                if (Store.isMyTurn === false) return;
+                if (Store.isMyTurn === false || Store.isModal) return;
                 const from = {
                     column: toJS(Store.focused).column,
                     row: toJS(Store.focused).row,
@@ -78,7 +78,9 @@ const Table = observer(() => {
                     width: Store.tableSize,
                     height: Store.tableSize,
                     borderCollapse: "collapse",
-                    border: `2px solid ${Store.isMyTurn ? "green" : "red"} `,
+                    border: `2px solid ${
+                        Store.isMyTurn ? "#1ADB6A" : "#DB0E00"
+                    } `,
                 }}
             >
                 <tbody>
