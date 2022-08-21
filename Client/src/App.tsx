@@ -8,6 +8,9 @@ const store = new Store();
 const App = () => {
     useEffect(() => {
         store.connectSocket();
+        return () => {
+            store?.socket?.disconnect();
+        };
     });
     return (
         <Provider Store={store}>

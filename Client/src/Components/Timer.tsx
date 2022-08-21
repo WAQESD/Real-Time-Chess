@@ -1,20 +1,21 @@
 import { css } from "@emotion/react";
 import { Spacing } from "Components";
+import { red, green } from "Constants/color";
 /** @jsxImportSource @emotion/react */
 
 interface Props {
     fontSize: number;
-    isMyTurn: boolean;
+    isTurn: boolean;
     lastTime: number;
     timerCss: string;
 }
 
-const Timer = ({ fontSize, isMyTurn, lastTime, timerCss }: Props) => {
+const Timer = ({ fontSize, isTurn, lastTime, timerCss }: Props) => {
     const timer = css(
         `
         font-family: LAB-digital;
         font-size: ${fontSize}px;
-        color: ${isMyTurn ? "#1ADB6A" : "#DB0E00"};
+        color: ${isTurn ? green : red};
         display: flex;
     ` + timerCss
     );

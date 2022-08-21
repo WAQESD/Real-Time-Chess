@@ -41,16 +41,16 @@ const InGame = observer(() => {
                 isRow={Store.windowHeight < Store.windowWidth}
                 isWhite={!Store.isWhite}
                 isMine={false}
-                padding={24}
-                fontSize={12}
+                padding={Store.infoSize / 8}
+                fontSize={Store.infoSize / 20}
             ></UserInfo>
             <Table></Table>
             <UserInfo
                 isRow={Store.windowHeight < Store.windowWidth}
                 isWhite={Store.isWhite}
                 isMine={true}
-                padding={24}
-                fontSize={12}
+                padding={Store.infoSize / 8}
+                fontSize={Store.infoSize / 20}
             ></UserInfo>
         </div>
     );

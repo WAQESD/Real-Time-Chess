@@ -4,7 +4,10 @@ const app = express();
 const http = require("http");
 const server = http.createServer(app);
 const { Server } = require("socket.io");
-const io = new Server(server);
+const io = new Server(server, {
+    transports: ["websocket"],
+    maxHttpBufferSize: 1e8,
+});
 
 const rooms = [];
 const enemy = {};
@@ -43,20 +46,35 @@ const enterRoom = (hostID, guestID) => {
 io.on("connection", (socket) => {
     console.log(`${socket.id} connected`);
     socketById[socket.id] = socket;
+    socket.on("connect_error", (err) => {
+        console.log(`connect_error due to ${err.message}`);
+    });
 
-    socket.on("makeNewGame", (hostID, callback) => {
-        if (openNewRoom(hostID)) callback(true);
-        else callback(false);
+    socket.on("disconnect", () => {
+        closeGame(socket.id);
+        console.log(`${socket.id} disconnected`);
+    });
+
+    socket.on("makeNewGame", (hostID) => {
+        openNewRoom(hostID);
     });
     socket.on("enterGame", (hostID, guestID, callback) => {
-        if (enterRoom(hostID, guestID)) callback(true);
-        else callback(false);
+        if (enterRoom(hostID, guestID)) {
+            socketById[enemy[guestID]]?.emit("enemyEnter", guestID);
+            callback(true);
+        } else callback(false);
     });
-    socket.on("closeGame", (hostID, callback) => {
-        if (closeGame(hostID)) callback(false);
+    socket.on("closeGame", (hostID) => {
+        closeGame(hostID);
     });
-    socket.on("pieceMove", (playerID, { column, row }, callback) => {
-        socketById[enemy[playerID]].emit("pieceMove", { column, row });
+    socket.on("pieceMove", (playerID, { from, to, isWhite }, callback) => {
+        socketById[enemy[playerID]]?.emit("pieceMove", { from, to, isWhite });
         callback();
+    });
+    socket.on("waitMyTurn", ({ playerID, turnLimit }, callback) => {
+        setTimeout(() => {
+            callback();
+            socketById[enemy[playerID]]?.emit("waitEnemyTurn");
+        }, turnLimit);
     });
 });

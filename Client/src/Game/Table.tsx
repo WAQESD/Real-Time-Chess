@@ -2,6 +2,7 @@ import { useStore } from "Store";
 import { observer } from "mobx-react";
 import { css } from "@emotion/react";
 import { toJS, runInAction } from "mobx";
+import { red, green } from "Constants/color";
 /** @jsxImportSource @emotion/react */
 
 const white = css`
@@ -57,16 +58,21 @@ const Table = observer(() => {
                     {
                         from,
                         to,
+                        isWite: Store.isWhite,
                     },
                     () => {
-                        Store.moveTo(from, to);
+                        Store.moveTo(from, to, Store.isWhite);
                     }
                 );
-                Store.socket.emit("waitMyTurn", () => {
-                    runInAction(() => {
-                        Store.isMyTurn = true;
-                    });
-                });
+                Store.socket.emit(
+                    "waitMyTurn",
+                    { playerID: Store.socket.id, turnLimit: Store.turnLimit },
+                    () => {
+                        runInAction(() => {
+                            Store.isMyTurn = true;
+                        });
+                    }
+                );
             } else console.error("server is not connected");
         } else Store.setFocused(column, row);
     };
@@ -78,9 +84,7 @@ const Table = observer(() => {
                     width: Store.tableSize,
                     height: Store.tableSize,
                     borderCollapse: "collapse",
-                    border: `2px solid ${
-                        Store.isMyTurn ? "#1ADB6A" : "#DB0E00"
-                    } `,
+                    border: `2px solid ${Store.isMyTurn ? green : red} `,
                 }}
             >
                 <tbody>

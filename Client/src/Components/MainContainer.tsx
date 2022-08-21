@@ -6,21 +6,17 @@ interface Props {
     children: ReactNode;
 }
 
-const container = css`
-    dispaly: flex;
-    justify-content: center;
-    align-items: center;
-    margin: 0;
-    padding: 0;
-    flex-direction: column;
-`;
-
 const MainContainer = ({ children }: Props) => {
-    return (
-        <div css={container} style={{ display: "flex" }}>
-            {children}
-        </div>
-    );
+    const container = css`
+        display: flex;
+        align-items: center;
+        margin: 0;
+        padding: 0;
+        flex-direction: column;
+        height: 100%;
+        width: 100%;
+    `;
+    return <div css={container}>{children}</div>;
 };
 
 export default MainContainer;

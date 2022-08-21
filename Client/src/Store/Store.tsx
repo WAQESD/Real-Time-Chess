@@ -25,7 +25,11 @@ class Store {
     isWhite = false;
     isModal = false;
     isMyTurn = false;
-    lastTime = 0;
+    isEnemyTurn = false;
+    turnLimit = 3000;
+    enemyID = "";
+    enemyLastTime = 0;
+    myLastTime = 0;
     windowWidth = window.innerWidth;
     windowHeight = window.innerHeight;
     modalContents = (<></>);
@@ -35,14 +39,15 @@ class Store {
 
     get infoSize() {
         return Math.max(
-            190,
+            160,
             (Math.max(this.windowWidth, this.windowHeight) -
                 Math.min(this.windowWidth, this.windowHeight)) /
                 2
         );
     }
     get tableSize() {
-        return (
+        return Math.max(
+            240,
             Math.max(this.windowWidth, this.windowHeight) - 2 * this.infoSize
         );
     }
@@ -53,16 +58,31 @@ class Store {
         reaction(
             () => this.isMyTurn,
             (isMyTurn) => {
-                if (isMyTurn) runInAction(() => (this.lastTime = 0));
+                if (isMyTurn) runInAction(() => (this.myLastTime = 0));
                 else {
-                    runInAction(() => (this.lastTime = 3000));
-
+                    runInAction(() => (this.myLastTime = this.turnLimit));
                     let intervalId = setInterval(() => {
-                        this.reduceLastTime();
+                        this.reduceMyLastTime();
                     }, 10);
                     setTimeout(() => {
                         clearInterval(intervalId);
-                    }, 3000);
+                    }, this.turnLimit + 100);
+                }
+            }
+        );
+
+        reaction(
+            () => this.isEnemyTurn,
+            (isMyTurn) => {
+                if (isMyTurn) runInAction(() => (this.enemyLastTime = 0));
+                else {
+                    runInAction(() => (this.enemyLastTime = this.turnLimit));
+                    let intervalId = setInterval(() => {
+                        this.reduceEnemyLastTime();
+                    }, 10);
+                    setTimeout(() => {
+                        clearInterval(intervalId);
+                    }, this.turnLimit + 100);
                 }
             }
         );
@@ -74,8 +94,14 @@ class Store {
                 runInAction(() => {
                     this.isMyTurn = true;
                 });
-                this.socket.on("pieceMove", ({ from, to }) => {
-                    this.moveTo(flipPosition(from), flipPosition(to));
+                runInAction(() => {
+                    this.isEnemyTurn = true;
+                });
+                this.socket.on("pieceMove", ({ from, to, isWhite }) => {
+                    this.moveTo(flipPosition(from), flipPosition(to), isWhite);
+                });
+                this.socket.on("waitEnemyTurn", () => {
+                    runInAction(() => (this.isEnemyTurn = true));
                 });
             }
         );
@@ -185,9 +211,14 @@ class Store {
             }
         );
     }
-    reduceLastTime() {
-        if (this.lastTime == 0) return;
-        this.lastTime -= 10;
+    reduceMyLastTime() {
+        if (this.myLastTime == 0) return;
+        this.myLastTime -= 10;
+    }
+
+    reduceEnemyLastTime() {
+        if (this.enemyLastTime == 0) return;
+        this.enemyLastTime -= 10;
     }
 
     resizeAction() {
@@ -199,7 +230,11 @@ class Store {
         });
     }
 
-    moveTo(from: Position, to: Position) {
+    moveTo(from: Position, to: Position, isWhite: boolean) {
+        runInAction(() => {
+            if (this.isWhite === isWhite) this.isMyTurn = false;
+            else this.isEnemyTurn = false;
+        });
         runInAction(() => {
             this.gameLog.push({
                 name: this.Pieces[from.row][from.column].name,
@@ -227,9 +262,6 @@ class Store {
         runInAction(() => {
             this.setPiece(from.column, from.row, empty());
         });
-        runInAction(() => {
-            this.isMyTurn = false;
-        });
     }
     setPiece(column: number, row: number, newPiece: Piece) {
         this.Pieces[row][column].name = newPiece.name;
@@ -253,6 +285,19 @@ class Store {
                 ></Promotion>
             );
         }
+    }
+
+    removeModal() {
+        runInAction(() => <></>);
+        runInAction(() => (this.isModal = false));
+    }
+    createModal(modalContents: any) {
+        runInAction(() => (this.modalContents = modalContents));
+        runInAction(() => (this.isModal = true));
+    }
+
+    setEnemyID(enemyID: string) {
+        this.enemyID = enemyID;
     }
 
     setFocused(column: number, row: number) {

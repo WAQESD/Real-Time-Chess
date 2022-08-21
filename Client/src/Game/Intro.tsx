@@ -1,11 +1,14 @@
 import { observer } from "mobx-react";
 import { useStore } from "Store";
 import { Spacing } from "Components";
+import { SettingGame } from "Game";
 
 const Intro = observer(() => {
     const { Store } = useStore();
     const makeNewGame = () => {
         if (Store.socket?.connected) {
+            Store.createModal(<SettingGame></SettingGame>);
+            /*
             Store.socket.emit(
                 "makeNewGame",
                 Store.socket.id,
@@ -15,7 +18,7 @@ const Intro = observer(() => {
                     Store.setInGame(bool);
                     Store.setIsHost(bool);
                 }
-            );
+            );*/
         } else console.error("server is not connected");
     };
     const enterGame = () => {

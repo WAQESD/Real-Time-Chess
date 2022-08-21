@@ -13,12 +13,15 @@ interface Props {
     padding: number;
     fontSize: number;
 }
+const win = Math.floor(Math.random() * 50);
+const lose = Math.floor(Math.random() * 50);
+const draw = Math.floor(Math.random() * 20);
 
 const ColumnUserInfo = observer(
     ({ isRow, isWhite, isMine, padding, fontSize }: Props) => {
         const { Store } = useStore();
         const backgroundColor = isWhite
-            ? "rgba(240, 217, 181, 0);"
+            ? "rgba(32, 15, 1, 0.05);"
             : "rgba(0, 0, 0, 0.9);";
         const containerStyle = userInfoStyle(
             backgroundColor,
@@ -66,14 +69,25 @@ const ColumnUserInfo = observer(
                 <div css={nameWithWinrateStyle}>
                     <div css={userNameStyle}>유저 이름</div>
                     <Spacing spacing={2}></Spacing>
-                    <div>0승 0패 0무 (0.0%)</div>
+                    <div>{`${win}승 ${lose}패 ${draw}무 (${(
+                        (win * 100) /
+                        (win + lose + draw)
+                    ).toFixed(1)}%)`}</div>
                 </div>
                 <Spacing spacing={8}></Spacing>
                 <Timer
                     timerCss={timerStyle}
                     fontSize={Store.infoSize / 3}
-                    isMyTurn={Store.isMyTurn}
-                    lastTime={Store.lastTime}
+                    isTurn={
+                        isWhite === Store.isWhite
+                            ? Store.isMyTurn
+                            : Store.isEnemyTurn
+                    }
+                    lastTime={
+                        isWhite === Store.isWhite
+                            ? Store.myLastTime
+                            : Store.enemyLastTime
+                    }
                 ></Timer>
             </div>
         );
