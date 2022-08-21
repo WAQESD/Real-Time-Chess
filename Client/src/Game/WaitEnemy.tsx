@@ -47,12 +47,12 @@ const WaitEnemy = observer(() => {
         }
     `;
     const onClick = () => {
-        Store.isModal = false;
+        Store.removeModal();
     };
 
     return (
         <div css={container}>
-            <div>상대방에게 코드를 알려주세요.</div>
+            <div>상대방에게 코드를 알려주세요</div>
             <Spacing spacing={6}></Spacing>
             <input css={inputStyle} readOnly value={Store.socket.id}></input>
             <Spacing spacing={8}></Spacing>
