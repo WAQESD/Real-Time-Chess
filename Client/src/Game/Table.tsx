@@ -43,7 +43,7 @@ const Table = observer(() => {
         else return (column + row) % 2 ? black : white;
     };
 
-    const onClick = (column: number, row: number) => {
+    const onMouseDown = (column: number, row: number) => {
         if (Store.Pieces[row][column].canMoveNow) {
             if (Store.socket?.connected) {
                 if (Store.isMyTurn === false || Store.isModal) return;
@@ -95,7 +95,7 @@ const Table = observer(() => {
                                     css={getCSSbyPosition(column, row)}
                                     id={`${alp}${num}`}
                                     key={`${alp}${num}`}
-                                    onClick={() => onClick(column, row)}
+                                    onMouseDown={() => onMouseDown(column, row)}
                                 >
                                     <img
                                         width={Store.tableSize / 10}

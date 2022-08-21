@@ -2,7 +2,7 @@ import { observer } from "mobx-react";
 import { useStore } from "Store";
 import { css } from "@emotion/react";
 import { Spacing } from "Components";
-import { WaitEnemy } from "Game";
+import { WaitEnemyEnter } from "Game";
 /** @jsxImportSource @emotion/react */
 
 const SettingGame = observer(() => {
@@ -53,7 +53,7 @@ const SettingGame = observer(() => {
         }
     `;
     const createGame = () => {
-        Store.createModal(<WaitEnemy></WaitEnemy>);
+        Store.createModal(<WaitEnemyEnter></WaitEnemyEnter>);
     };
 
     const returnToMenu = () => {

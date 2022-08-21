@@ -5,3 +5,6 @@ export { default as Promotion } from "Components/Promotion";
 export { default as UserInfo } from "Components/UserInfo";
 export { default as Timer } from "Components/Timer";
 export { default as Logo } from "Components/Logo";
+export { default as Ready } from "Components/Ready";
+export { default as CountDown } from "Components/CountDown";
+export { default as GameOver } from "Components/GameOver";

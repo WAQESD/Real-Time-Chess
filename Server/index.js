@@ -43,6 +43,11 @@ const enterRoom = (hostID, guestID) => {
     return true;
 };
 
+const quitGame = (playerID) => {
+    enemy[playerID] = null;
+    closeGame(quitGame);
+};
+
 io.on("connection", (socket) => {
     console.log(`${socket.id} connected`);
     socketById[socket.id] = socket;
@@ -52,6 +57,7 @@ io.on("connection", (socket) => {
 
     socket.on("disconnect", () => {
         closeGame(socket.id);
+        if (enemy[socket.id]) socketById[enemy[socket.id]]?.emit("enemyExit");
         console.log(`${socket.id} disconnected`);
     });
 
@@ -76,5 +82,16 @@ io.on("connection", (socket) => {
             callback();
             socketById[enemy[playerID]]?.emit("waitEnemyTurn");
         }, turnLimit);
+    });
+    socket.on("ready", (playerID, callback) => {
+        callback();
+        socketById[enemy[playerID]]?.emit("enemyReady");
+    });
+    socket.on("cancelReady", (playerID, callback) => {
+        callback();
+        socketById[enemy[playerID]]?.emit("enemyCancelReady");
+    });
+    socket.on("enemyExit", () => {
+        quitGame(socket.id);
     });
 });

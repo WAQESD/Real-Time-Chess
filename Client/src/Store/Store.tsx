@@ -12,7 +12,7 @@ import {
     rookMove,
     bishopMove,
 } from "Constants/pieceMove";
-import { Promotion } from "Components";
+import { Promotion, CountDown, GameOver } from "Components";
 
 const ENDPOINT = "//localhost:3001/";
 
@@ -26,8 +26,12 @@ class Store {
     isModal = false;
     isMyTurn = false;
     isEnemyTurn = false;
+    isReady = false;
+    enemyReady = false;
     turnLimit = 3000;
+    countDown = 3;
     enemyID = "";
+    gameResult = "draw";
     enemyLastTime = 0;
     myLastTime = 0;
     windowWidth = window.innerWidth;
@@ -45,6 +49,7 @@ class Store {
                 2
         );
     }
+
     get tableSize() {
         return Math.max(
             240,
@@ -56,10 +61,32 @@ class Store {
         makeAutoObservable(this);
 
         reaction(
+            () => this.isReady,
+            (isReady) => {
+                if (isReady && this.enemyReady) {
+                    setTimeout(() => {
+                        this.setCountDown(3);
+                    }, 1000);
+                }
+            }
+        );
+        reaction(
+            () => this.enemyReady,
+            (enemyReady) => {
+                if (enemyReady && this.isReady) {
+                    setTimeout(() => {
+                        this.setCountDown(3);
+                    }, 1000);
+                }
+            }
+        );
+
+        reaction(
             () => this.isMyTurn,
             (isMyTurn) => {
                 if (isMyTurn) runInAction(() => (this.myLastTime = 0));
                 else {
+                    if (this.inGame === false) return;
                     runInAction(() => (this.myLastTime = this.turnLimit));
                     let intervalId = setInterval(() => {
                         this.reduceMyLastTime();
@@ -73,8 +100,9 @@ class Store {
 
         reaction(
             () => this.isEnemyTurn,
-            (isMyTurn) => {
-                if (isMyTurn) runInAction(() => (this.enemyLastTime = 0));
+            (isEnemyTurn) => {
+                if (this.inGame === false) return;
+                if (isEnemyTurn) runInAction(() => (this.enemyLastTime = 0));
                 else {
                     runInAction(() => (this.enemyLastTime = this.turnLimit));
                     let intervalId = setInterval(() => {
@@ -90,25 +118,44 @@ class Store {
         reaction(
             () => this.inGame,
             (inGame) => {
-                if (inGame == false) return;
-                runInAction(() => {
-                    this.isMyTurn = true;
-                });
-                runInAction(() => {
-                    this.isEnemyTurn = true;
-                });
-                this.socket.on("pieceMove", ({ from, to, isWhite }) => {
-                    this.moveTo(flipPosition(from), flipPosition(to), isWhite);
-                });
-                this.socket.on("waitEnemyTurn", () => {
-                    runInAction(() => (this.isEnemyTurn = true));
-                });
+                if (inGame) {
+                    runInAction(() => {
+                        this.isMyTurn = true;
+                    });
+                    runInAction(() => {
+                        this.isEnemyTurn = true;
+                    });
+                    this.setPieces();
+                    this.socket.on("pieceMove", ({ from, to, isWhite }) => {
+                        this.moveTo(
+                            flipPosition(from),
+                            flipPosition(to),
+                            isWhite
+                        );
+                    });
+                    this.socket.on("waitEnemyTurn", () => {
+                        runInAction(() => (this.isEnemyTurn = true));
+                    });
+                    this.socket.on("enemyReady", () => {
+                        this.setEnemyReady(true);
+                    });
+                    this.socket.on("enemyCancelReady", () => {
+                        this.setEnemyReady(false);
+                    });
+                    this.socket.on("enemyExit", () => {
+                        this.gameOver(true);
+                        this.socket.emit("enemyExit");
+                    });
+                } else {
+                    this.socket.off();
+                }
             }
         );
 
         reaction(
             () => this.focused,
             (focused) => {
+                if (this.inGame == false) return;
                 for (let row = 0; row < 8; row++) {
                     for (let column = 0; column < 8; column++)
                         this.Pieces[row][column].canMoveNow = false;
@@ -211,6 +258,46 @@ class Store {
             }
         );
     }
+
+    gameOver(enemyExit: boolean) {
+        if (enemyExit) {
+            this.createModal(
+                <GameOver
+                    gameResult="win"
+                    enemyExit={enemyExit}
+                    onClick={() => {
+                        this.removeModal();
+                        this.returnToLobby();
+                    }}
+                ></GameOver>
+            );
+        } else {
+            this.createModal(
+                <GameOver
+                    gameResult={this.gameResult}
+                    enemyExit={enemyExit}
+                    onClick={() => {
+                        this.removeModal();
+                        this.returnToLobby();
+                    }}
+                ></GameOver>
+            );
+        }
+    }
+
+    returnToLobby() {
+        this.inGame = false;
+        this.isMatched = false;
+        this.isHost = false;
+        this.isReady = false;
+        this.enemyReady = false;
+        this.turnLimit = 3000;
+        this.enemyID = "";
+        this.Pieces = [[]];
+        this.focused = { column: -1, row: -1 };
+        this.gameLog = [];
+    }
+
     reduceMyLastTime() {
         if (this.myLastTime == 0) return;
         this.myLastTime -= 10;
@@ -263,6 +350,7 @@ class Store {
             this.setPiece(from.column, from.row, empty());
         });
     }
+
     setPiece(column: number, row: number, newPiece: Piece) {
         this.Pieces[row][column].name = newPiece.name;
         this.Pieces[row][column].isWhite = newPiece.isWhite;
@@ -291,6 +379,7 @@ class Store {
         runInAction(() => <></>);
         runInAction(() => (this.isModal = false));
     }
+
     createModal(modalContents: any) {
         runInAction(() => (this.modalContents = modalContents));
         runInAction(() => (this.isModal = true));
@@ -321,6 +410,31 @@ class Store {
 
     setIsHost(bool: boolean) {
         this.isHost = bool;
+    }
+
+    setReady(bool: boolean) {
+        this.isReady = bool;
+    }
+
+    setEnemyReady(bool: boolean) {
+        this.enemyReady = bool;
+    }
+
+    reduceCountDown() {
+        if (this.countDown == 0) return;
+        this.countDown -= 1;
+    }
+
+    setCountDown(number = 3) {
+        this.countDown = number;
+        this.createModal(<CountDown></CountDown>);
+        let intervalId = setInterval(() => {
+            this.reduceCountDown();
+        }, 1000);
+        setTimeout(() => {
+            clearInterval(intervalId);
+            this.removeModal();
+        }, number * 1000);
     }
 
     connectSocket(): void {
