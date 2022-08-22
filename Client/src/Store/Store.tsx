@@ -3,15 +3,9 @@ import { Piece, whiteSetUp, blackSetUp } from "Constants/defaultSetting";
 import { io } from "socket.io-client";
 import { isInTable } from "Utils/isInTable";
 import { empty } from "Constants/defaultSetting";
-import { Position, flipPosition } from "Utils/flipPosition";
-import { gameLog } from "Constants/gameLogType";
-import {
-    knightMove,
-    kingMove,
-    queenMove,
-    rookMove,
-    bishopMove,
-} from "Constants/pieceMove";
+import { flipPosition } from "Utils/flipPosition";
+import { Position, gameLog } from "Constants/Types";
+import { getCanMoveTiles } from "Utils/getCanMoveTiles";
 import { CountDown, GameOver } from "Components";
 
 const ENDPOINT = "//localhost:3001/";
@@ -54,22 +48,6 @@ class Store {
         return Math.max(
             240,
             Math.max(this.windowWidth, this.windowHeight) - 2 * this.infoSize
-        );
-    }
-
-    isEnPassant(column: number, row: number) {
-        let Piece = toJS(this.Pieces[row][column]);
-        let lastGameLog = toJS(this.gameLog[this.gameLog.length - 1]);
-        let checkLastMoveIsPawn =
-            lastGameLog.name === "pawn" &&
-            lastGameLog.to.column === column &&
-            lastGameLog.to.row === row &&
-            lastGameLog.from.column === column &&
-            lastGameLog.from.row === row - 2;
-        return (
-            Piece.name === "pawn" &&
-            Piece.isWhite !== this.isWhite &&
-            checkLastMoveIsPawn
         );
     }
 
@@ -151,6 +129,7 @@ class Store {
                                 isWhite,
                                 pieceType
                             );
+                            this.setCanMoveNow();
                         }
                     );
                     this.socket.on("waitEnemyTurn", () => {
@@ -174,122 +153,34 @@ class Store {
 
         reaction(
             () => this.focused,
-            (focused) => {
-                if (this.inGame == false) return;
-                for (let row = 0; row < 8; row++) {
-                    for (let column = 0; column < 8; column++)
-                        this.Pieces[row][column].canMoveNow = false;
-                }
-                let column = toJS(focused).column;
-                let row = toJS(focused).row;
-                if (isInTable(row, column) === false) return;
-                let PieceType = this.Pieces[row][column].name;
-                if (
-                    PieceType === "empty" ||
-                    this.Pieces[row][column].isWhite !== this.isWhite
-                )
-                    return;
-                else if (PieceType === "pawn") {
-                    if (
-                        isInTable(row - 1, column) &&
-                        this.Pieces[row - 1][column].name === "empty"
-                    ) {
-                        this.Pieces[row - 1][column].canMoveNow = true;
-                        if (
-                            this.Pieces[row][column].isMoved === false &&
-                            isInTable(row - 2, column) &&
-                            this.Pieces[row - 2][column].name === "empty"
-                        )
-                            this.Pieces[row - 2][column].canMoveNow = true;
-                    }
-                    if (
-                        isInTable(row - 1, column - 1) &&
-                        this.Pieces[row - 1][column - 1].name !== "empty" &&
-                        this.Pieces[row - 1][column - 1].isWhite !==
-                            this.isWhite
-                    )
-                        this.Pieces[row - 1][column - 1].canMoveNow = true;
-                    if (
-                        isInTable(row - 1, column + 1) &&
-                        this.Pieces[row - 1][column + 1].name !== "empty" &&
-                        this.Pieces[row - 1][column + 1].isWhite !==
-                            this.isWhite
-                    )
-                        this.Pieces[row - 1][column + 1].canMoveNow = true;
-
-                    if (
-                        isInTable(row, column - 1) &&
-                        this.gameLog.length > 0 &&
-                        this.isEnPassant(row, column - 1)
-                    )
-                        this.Pieces[row - 1][column - 1].canMoveNow = true;
-                    if (
-                        isInTable(row, column + 1) &&
-                        this.gameLog.length > 0 &&
-                        this.isEnPassant(row, column + 1)
-                    )
-                        this.Pieces[row - 1][column + 1].canMoveNow = true;
-                } else if (PieceType === "knight") {
-                    knightMove.forEach(({ x, y }) => {
-                        if (
-                            isInTable(row + y, column + x) === false ||
-                            (this.Pieces[row + y][column + x].name !==
-                                "empty" &&
-                                this.Pieces[row + y][column + x].isWhite ===
-                                    this.isWhite)
-                        )
-                            return;
-                        this.Pieces[row + y][column + x].canMoveNow = true;
-                    });
-                } else if (PieceType === "king") {
-                    kingMove.forEach(({ x, y }) => {
-                        if (
-                            isInTable(row + y, column + x) === false ||
-                            (this.Pieces[row + y][column + x].name !==
-                                "empty" &&
-                                this.Pieces[row + y][column + x].isWhite ===
-                                    this.isWhite)
-                        )
-                            return;
-                        this.Pieces[row + y][column + x].canMoveNow = true;
-                    });
-                } else if (
-                    PieceType === "queen" ||
-                    PieceType === "rook" ||
-                    PieceType === "bishop"
-                ) {
-                    let pieceMove = {
-                        queen: queenMove,
-                        rook: rookMove,
-                        bishop: bishopMove,
-                    }[PieceType];
-                    for (let dir = 0; dir < pieceMove.dir; dir++) {
-                        let nextColumn = column + pieceMove.dx[dir];
-                        let nextRow = row + pieceMove.dy[dir];
-                        while (isInTable(nextRow, nextColumn)) {
-                            if (
-                                this.Pieces[nextRow][nextColumn].name !==
-                                "empty"
-                            ) {
-                                if (
-                                    this.Pieces[nextRow][nextColumn].isWhite !==
-                                    this.isWhite
-                                )
-                                    this.Pieces[nextRow][
-                                        nextColumn
-                                    ].canMoveNow = true;
-                                break;
-                            } else {
-                                this.Pieces[nextRow][nextColumn].canMoveNow =
-                                    true;
-                                nextColumn = nextColumn + pieceMove.dx[dir];
-                                nextRow = nextRow + pieceMove.dy[dir];
-                            }
-                        }
-                    }
-                }
+            () => {
+                this.setCanMoveNow();
             }
         );
+    }
+
+    setCanMoveNow() {
+        if (this.inGame == false) return;
+        for (let row = 0; row < 8; row++) {
+            for (let column = 0; column < 8; column++)
+                this.Pieces[row][column].canMoveNow = false;
+        }
+        let column = toJS(this.focused).column;
+        let row = toJS(this.focused).row;
+        if (isInTable(row, column) === false) return;
+        let PieceType = this.Pieces[row][column].name;
+        if (
+            PieceType === "empty" ||
+            this.Pieces[row][column].isWhite !== this.isWhite
+        )
+            return;
+        else
+            this.Pieces = getCanMoveTiles(
+                { column, row },
+                toJS(this.Pieces),
+                this.isWhite,
+                toJS(this.gameLog)
+            );
     }
 
     gameOver(enemyExit: boolean) {
