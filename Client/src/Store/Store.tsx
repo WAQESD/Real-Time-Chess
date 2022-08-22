@@ -12,7 +12,7 @@ import {
     rookMove,
     bishopMove,
 } from "Constants/pieceMove";
-import { Promotion, CountDown, GameOver } from "Components";
+import { CountDown, GameOver } from "Components";
 
 const ENDPOINT = "//localhost:3001/";
 
@@ -54,6 +54,22 @@ class Store {
         return Math.max(
             240,
             Math.max(this.windowWidth, this.windowHeight) - 2 * this.infoSize
+        );
+    }
+
+    isEnPassant(column: number, row: number) {
+        let Piece = toJS(this.Pieces[row][column]);
+        let lastGameLog = toJS(this.gameLog[this.gameLog.length - 1]);
+        let checkLastMoveIsPawn =
+            lastGameLog.name === "pawn" &&
+            lastGameLog.to.column === column &&
+            lastGameLog.to.row === row &&
+            lastGameLog.from.column === column &&
+            lastGameLog.from.row === row - 2;
+        return (
+            Piece.name === "pawn" &&
+            Piece.isWhite !== this.isWhite &&
+            checkLastMoveIsPawn
         );
     }
 
@@ -200,6 +216,19 @@ class Store {
                             this.isWhite
                     )
                         this.Pieces[row - 1][column + 1].canMoveNow = true;
+
+                    if (
+                        isInTable(row, column - 1) &&
+                        this.gameLog.length > 0 &&
+                        this.isEnPassant(row, column - 1)
+                    )
+                        this.Pieces[row - 1][column - 1].canMoveNow = true;
+                    if (
+                        isInTable(row, column + 1) &&
+                        this.gameLog.length > 0 &&
+                        this.isEnPassant(row, column + 1)
+                    )
+                        this.Pieces[row - 1][column + 1].canMoveNow = true;
                 } else if (PieceType === "knight") {
                     knightMove.forEach(({ x, y }) => {
                         if (
@@ -322,6 +351,9 @@ class Store {
     }
 
     moveTo(from: Position, to: Position, isWhite: boolean, pieceType: string) {
+        let isEnPassant =
+            pieceType === "pawn" &&
+            this.Pieces[to.row][to.column].name === "empty";
         runInAction(() => {
             if (this.isWhite === isWhite) this.isMyTurn = false;
             else this.isEnemyTurn = false;
@@ -368,6 +400,11 @@ class Store {
             });
         });
         runInAction(() => {
+            if (isEnPassant) {
+                if (isWhite === this.isWhite)
+                    this.setPiece(to.column, to.row + 1, empty());
+                else this.setPiece(to.column, to.row - 1, empty());
+            }
             this.setPiece(from.column, from.row, empty());
         });
     }
