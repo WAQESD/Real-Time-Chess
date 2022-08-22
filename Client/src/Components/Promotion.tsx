@@ -1,17 +1,19 @@
 import { css } from "@emotion/react";
+import { observer } from "mobx-react";
+import { useStore } from "Store";
 /** @jsxImportSource @emotion/react */
 
 interface Props {
-    isWhite: boolean;
-    setNewPiece: (pieceName: string) => void;
-    closeModal: () => void;
+    from: { column: number; row: number };
+    to: { column: number; row: number };
 }
 
 const selectablePiece = css`
     cursor: pointer;
 `;
 
-const Promotion = ({ isWhite, setNewPiece, closeModal }: Props) => {
+const Promotion = observer(({ from, to }: Props) => {
+    const { Store } = useStore();
     const tableSize = Math.floor(
         Math.min(window.innerWidth, window.innerHeight)
     );
@@ -27,13 +29,13 @@ const Promotion = ({ isWhite, setNewPiece, closeModal }: Props) => {
                     isWhite ? "white" : "black"
                 }.svg`}
                 onClick={() => {
-                    setNewPiece(pieceType);
-                    closeModal();
+                    Store.emitPieceMove(from, to, pieceType);
+                    Store.removeModal();
                 }}
             ></img>
         ));
     };
-    return <div>{seletablePieces(isWhite)}</div>;
-};
+    return <div>{seletablePieces(Store.isWhite)}</div>;
+});
 
 export default Promotion;

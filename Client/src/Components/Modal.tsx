@@ -21,7 +21,7 @@ const Modal = ({ children }: Props) => {
         position: absolute;
         top: ${window.innerHeight / 2};
         left: ${window.innerWidth / 2};
-        background-color: rgba(0, 0, 0, 0.95);
+        background-color: rgba(0, 0, 0, 0.5);
         padding: 4px;
         display: flex;
         flex-direction: column;

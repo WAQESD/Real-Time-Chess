@@ -9,11 +9,11 @@ const WaitEnemy = observer(() => {
     const { Store } = useStore();
 
     useEffect(() => {
-        Store.socket.emit("makeNewGame", Store.socket.id);
+        let gameSetting = { turnLimit: Store.turnLimit };
+        Store.socket.emit("makeNewGame", Store.socket.id, gameSetting);
         Store.socket.on("enemyEnter", (enemyID: string) => {
             Store.isWhite = true;
             Store.setEnemyID(enemyID);
-            Store.setPieces();
             Store.setInGame(true);
             Store.setIsHost(true);
             Store.createModal(<Ready></Ready>);

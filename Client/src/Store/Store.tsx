@@ -93,7 +93,7 @@ class Store {
                     }, 10);
                     setTimeout(() => {
                         clearInterval(intervalId);
-                    }, this.turnLimit + 100);
+                    }, this.turnLimit);
                 }
             }
         );
@@ -110,7 +110,7 @@ class Store {
                     }, 10);
                     setTimeout(() => {
                         clearInterval(intervalId);
-                    }, this.turnLimit + 100);
+                    }, this.turnLimit);
                 }
             }
         );
@@ -126,13 +126,17 @@ class Store {
                         this.isEnemyTurn = true;
                     });
                     this.setPieces();
-                    this.socket.on("pieceMove", ({ from, to, isWhite }) => {
-                        this.moveTo(
-                            flipPosition(from),
-                            flipPosition(to),
-                            isWhite
-                        );
-                    });
+                    this.socket.on(
+                        "pieceMove",
+                        ({ from, to, isWhite, pieceType }) => {
+                            this.moveTo(
+                                flipPosition(from),
+                                flipPosition(to),
+                                isWhite,
+                                pieceType
+                            );
+                        }
+                    );
                     this.socket.on("waitEnemyTurn", () => {
                         runInAction(() => (this.isEnemyTurn = true));
                     });
@@ -317,7 +321,7 @@ class Store {
         });
     }
 
-    moveTo(from: Position, to: Position, isWhite: boolean) {
+    moveTo(from: Position, to: Position, isWhite: boolean, pieceType: string) {
         runInAction(() => {
             if (this.isWhite === isWhite) this.isMyTurn = false;
             else this.isEnemyTurn = false;
@@ -332,19 +336,36 @@ class Store {
         });
         if (
             this.Pieces[from.row][from.column].isWhite === this.isWhite ||
-            (toJS(this.focused).column === to.column &&
+            (isWhite !== this.isWhite &&
+                toJS(this.focused).column === to.column &&
                 toJS(this.focused).row === to.row)
         ) {
             runInAction(() => {
                 this.setFocused(-1, -1);
+                if (this.isModal) this.removeModal();
             });
         }
+        if (
+            isWhite !== this.isWhite &&
+            this.Pieces[to.row][to.column].name === "king" &&
+            this.Pieces[to.row][to.column].isWhite === this.isWhite
+        ) {
+            runInAction(() => (this.gameResult = "lose"));
+            this.gameOver(false);
+        }
+        if (
+            isWhite === this.isWhite &&
+            this.Pieces[to.row][to.column].name === "king" &&
+            this.Pieces[to.row][to.column].isWhite !== this.isWhite
+        ) {
+            runInAction(() => (this.gameResult = "win"));
+            this.gameOver(false);
+        }
         runInAction(() => {
-            this.setPiece(
-                to.column,
-                to.row,
-                this.Pieces[from.row][from.column]
-            );
+            this.setPiece(to.column, to.row, {
+                ...this.Pieces[from.row][from.column],
+                name: pieceType,
+            });
         });
         runInAction(() => {
             this.setPiece(from.column, from.row, empty());
@@ -355,24 +376,6 @@ class Store {
         this.Pieces[row][column].name = newPiece.name;
         this.Pieces[row][column].isWhite = newPiece.isWhite;
         this.Pieces[row][column].isMoved = true;
-        if (
-            row === 0 &&
-            newPiece.name === "pawn" &&
-            newPiece.isWhite === this.isWhite
-        ) {
-            this.isModal = true;
-            this.modalContents = (
-                <Promotion
-                    isWhite={this.isWhite}
-                    setNewPiece={(pieceName) => {
-                        this.Pieces[row][column].name = pieceName;
-                    }}
-                    closeModal={() => {
-                        this.isModal = false;
-                    }}
-                ></Promotion>
-            );
-        }
     }
 
     removeModal() {
@@ -400,6 +403,31 @@ class Store {
         if (isInTable(row, column)) this.Pieces[row][column].isFocused = true;
     }
 
+    emitPieceMove(from: Position, to: Position, pieceType: string) {
+        this.socket.emit(
+            "pieceMove",
+            this.socket.id,
+            {
+                from,
+                to,
+                isWhite: this.isWhite,
+                pieceType,
+            },
+            () => {
+                this.moveTo(from, to, this.isWhite, pieceType);
+            }
+        );
+        this.socket.emit(
+            "waitMyTurn",
+            { playerID: this.socket.id, turnLimit: this.turnLimit },
+            () => {
+                runInAction(() => {
+                    this.isMyTurn = true;
+                });
+            }
+        );
+    }
+
     setPieces() {
         this.Pieces = this.isWhite ? whiteSetUp : blackSetUp;
     }
@@ -418,6 +446,10 @@ class Store {
 
     setEnemyReady(bool: boolean) {
         this.enemyReady = bool;
+    }
+
+    setTurnLimit(value: number) {
+        this.turnLimit = value;
     }
 
     reduceCountDown() {

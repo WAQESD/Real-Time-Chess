@@ -52,6 +52,7 @@ const SettingGame = observer(() => {
             color: yellow;
         }
     `;
+
     const createGame = () => {
         Store.createModal(<WaitEnemyEnter></WaitEnemyEnter>);
     };
@@ -68,7 +69,12 @@ const SettingGame = observer(() => {
                 <Spacing spacing={4}></Spacing>
                 <span>:</span>
                 <Spacing spacing={4}></Spacing>
-                <select defaultValue={3000} css={selectStyle} name="제한시간">
+                <select
+                    defaultValue={3000}
+                    onChange={(event) => Store.setTurnLimit(event.target.value)}
+                    css={selectStyle}
+                    name="제한시간"
+                >
                     <option css={optionStyle} value={1000}>
                         1 초
                     </option>

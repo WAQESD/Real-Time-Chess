@@ -1,7 +1,8 @@
 import { useStore } from "Store";
 import { observer } from "mobx-react";
 import { css } from "@emotion/react";
-import { toJS, runInAction } from "mobx";
+import { toJS } from "mobx";
+import { Promotion } from "Components";
 import { red, green } from "Constants/color";
 /** @jsxImportSource @emotion/react */
 
@@ -52,29 +53,24 @@ const Table = observer(() => {
                     row: toJS(Store.focused).row,
                 };
                 const to = { column, row };
-                Store.socket.emit(
-                    "pieceMove",
-                    Store.socket.id,
-                    {
+                if (
+                    to.row === 0 &&
+                    Store.Pieces[from.row][from.column].name === "pawn"
+                ) {
+                    Store.createModal(
+                        <Promotion from={from} to={to}></Promotion>
+                    );
+                } else {
+                    Store.emitPieceMove(
                         from,
                         to,
-                        isWite: Store.isWhite,
-                    },
-                    () => {
-                        Store.moveTo(from, to, Store.isWhite);
-                    }
-                );
-                Store.socket.emit(
-                    "waitMyTurn",
-                    { playerID: Store.socket.id, turnLimit: Store.turnLimit },
-                    () => {
-                        runInAction(() => {
-                            Store.isMyTurn = true;
-                        });
-                    }
-                );
+                        Store.Pieces[from.row][from.column].name
+                    );
+                }
             } else console.error("server is not connected");
-        } else Store.setFocused(column, row);
+        } else if (Store.Pieces[row][column].isFocused)
+            Store.setFocused(-1, -1);
+        else Store.setFocused(column, row);
     };
 
     const makeTableComponent = () => {

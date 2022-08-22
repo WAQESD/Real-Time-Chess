@@ -19,8 +19,9 @@ const Lobby = observer(() => {
                 "enterGame",
                 Store.roomId,
                 Store.socket.id,
-                (bool: boolean) => {
+                (bool: boolean, gameSetting: { turnLimit: number }) => {
                     Store.isWhite = false;
+                    Store.setTurnLimit(gameSetting.turnLimit);
                     Store.setInGame(bool);
                     Store.createModal(<Ready></Ready>);
                 }
