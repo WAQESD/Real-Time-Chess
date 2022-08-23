@@ -1,12 +1,13 @@
 import { makeAutoObservable, toJS, reaction, runInAction } from "mobx";
-import { Piece, whiteSetUp, blackSetUp } from "Constants/defaultSetting";
+import { Piece, whiteSetUp, blackSetUp } from "Constants/DefaultSetting";
 import { io } from "socket.io-client";
 import { isInTable } from "Utils/isInTable";
-import { empty } from "Constants/defaultSetting";
+import { empty } from "Constants/DefaultSetting";
 import { flipPosition } from "Utils/flipPosition";
 import { Position, gameLog } from "Constants/Types";
+import { style } from "Constants/Style";
 import { getCanMoveTiles } from "Utils/getCanMoveTiles";
-import { CountDown, GameOver } from "Components";
+import { CountDown, GameOver, Promotion, Ready } from "Components";
 
 const ENDPOINT = "//localhost:3001/";
 
@@ -36,38 +37,32 @@ class Store {
     gameLog: Array<gameLog> = [];
 
     get infoSize() {
-        return Math.max(
-            160,
+        let infoSize =
             (Math.max(this.windowWidth, this.windowHeight) -
                 Math.min(this.windowWidth, this.windowHeight)) /
-                2
-        );
+            2;
+        if (infoSize > style.minInfoSize) return infoSize;
+        else return style.minInfoSize;
     }
 
     get tableSize() {
-        return Math.max(
-            240,
-            Math.max(this.windowWidth, this.windowHeight) - 2 * this.infoSize
-        );
+        let tableSize =
+            Math.max(this.windowWidth, this.windowHeight) - 2 * this.infoSize;
+        if (tableSize > style.minTableSize) return tableSize;
+        else return style.minTableSize;
+    }
+
+    get bothReady() {
+        return this.isReady && this.enemyReady;
     }
 
     constructor() {
         makeAutoObservable(this);
 
         reaction(
-            () => this.isReady,
-            (isReady) => {
-                if (isReady && this.enemyReady) {
-                    setTimeout(() => {
-                        this.setCountDown(3);
-                    }, 1000);
-                }
-            }
-        );
-        reaction(
-            () => this.enemyReady,
-            (enemyReady) => {
-                if (enemyReady && this.isReady) {
+            () => this.bothReady,
+            (bothReady) => {
+                if (bothReady) {
                     setTimeout(() => {
                         this.setCountDown(3);
                     }, 1000);
@@ -329,6 +324,45 @@ class Store {
 
         this.focused = { column, row };
         if (isInTable(row, column)) this.Pieces[row][column].isFocused = true;
+    }
+
+    enterGame() {
+        if (this.socket?.connected) {
+            this.socket.emit(
+                "enterGame",
+                this.roomId,
+                this.socket.id,
+                (bool: boolean, gameSetting: { turnLimit: number }) => {
+                    this.isWhite = false;
+                    this.setTurnLimit(gameSetting.turnLimit);
+                    this.setInGame(bool);
+                    this.createModal(<Ready></Ready>);
+                }
+            );
+        } else console.error("server is not connected");
+    }
+
+    movePiece(column: number, row: number) {
+        if (this.socket?.connected) {
+            if (this.isMyTurn === false || this.isModal) return;
+            const from = {
+                column: toJS(this.focused).column,
+                row: toJS(this.focused).row,
+            };
+            const to = { column, row };
+            if (
+                to.row === 0 &&
+                this.Pieces[from.row][from.column].name === "pawn"
+            ) {
+                this.createModal(<Promotion from={from} to={to}></Promotion>);
+            } else {
+                this.emitPieceMove(
+                    from,
+                    to,
+                    this.Pieces[from.row][from.column].name
+                );
+            }
+        } else console.error("server is not connected");
     }
 
     emitPieceMove(from: Position, to: Position, pieceType: string) {

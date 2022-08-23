@@ -2,7 +2,8 @@ import { css } from "@emotion/react";
 import { Spacing, Timer } from "Components";
 import { useStore } from "Store";
 import { observer } from "mobx-react";
-import { userInfoStyle } from "Constants/userInfoStyle";
+import { userInfoStyle } from "Constants/UserInfoStyle";
+import { white, black } from "Constants/Color";
 
 /** @jsxImportSource @emotion/react */
 
@@ -20,9 +21,7 @@ const draw = Math.floor(Math.random() * 20);
 const ColumnUserInfo = observer(
     ({ isRow, isWhite, isMine, padding, fontSize }: Props) => {
         const { Store } = useStore();
-        const backgroundColor = isWhite
-            ? "rgba(32, 15, 1, 0.05);"
-            : "rgba(0, 0, 0, 0.9);";
+        const backgroundColor = isWhite ? white : black;
         const containerStyle = userInfoStyle(
             backgroundColor,
             padding,
@@ -76,7 +75,7 @@ const ColumnUserInfo = observer(
                 </div>
                 <Spacing spacing={8}></Spacing>
                 <Timer
-                    timerCss={timerStyle}
+                    timerStyle={timerStyle}
                     fontSize={Store.infoSize / 3}
                     isTurn={
                         isWhite === Store.isWhite

@@ -4,7 +4,7 @@ import {
     queenMove,
     rookMove,
     bishopMove,
-} from "Constants/pieceMove";
+} from "Constants/PieceMove";
 import { isInTable } from "Utils/isInTable";
 import { gameLog, Piece, Position } from "Constants/Types";
 

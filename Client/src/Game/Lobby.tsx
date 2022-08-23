@@ -1,33 +1,13 @@
 import { observer } from "mobx-react";
 import { useStore } from "Store";
-import { Spacing, Logo, Ready } from "Components";
-import { SettingGame } from "Game";
+import { Spacing, Logo, SettingGame } from "Components";
 import { css } from "@emotion/react";
 
 /** @jsxImportSource @emotion/react */
 
 const Lobby = observer(() => {
     const { Store } = useStore();
-    const makeNewGame = () => {
-        if (Store.socket?.connected) {
-            Store.createModal(<SettingGame></SettingGame>);
-        } else console.error("server is not connected");
-    };
-    const enterGame = () => {
-        if (Store.socket?.connected) {
-            Store.socket.emit(
-                "enterGame",
-                Store.roomId,
-                Store.socket.id,
-                (bool: boolean, gameSetting: { turnLimit: number }) => {
-                    Store.isWhite = false;
-                    Store.setTurnLimit(gameSetting.turnLimit);
-                    Store.setInGame(bool);
-                    Store.createModal(<Ready></Ready>);
-                }
-            );
-        } else console.error("server is not connected");
-    };
+
     const buttonStyle = css`
         font-family: Noto Sans KR;
         border: 2px solid black;
@@ -74,7 +54,12 @@ const Lobby = observer(() => {
                     flex-direction: column;
                 `}
             >
-                <button css={buttonStyle} onClick={makeNewGame}>
+                <button
+                    css={buttonStyle}
+                    onClick={() =>
+                        Store.createModal(<SettingGame></SettingGame>)
+                    }
+                >
                     게임 생성하기
                 </button>
                 <Spacing spacing={8} />
@@ -88,7 +73,7 @@ const Lobby = observer(() => {
                 ></input>
                 <Spacing spacing={3} />
                 <div style={{ display: "flex", flexDirection: "column" }}>
-                    <button css={buttonStyle} onClick={enterGame}>
+                    <button css={buttonStyle} onClick={() => Store.enterGame()}>
                         게임 입장하기
                     </button>
                 </div>

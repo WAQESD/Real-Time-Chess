@@ -6,73 +6,65 @@ export interface Piece {
     canMoveNow: boolean;
 }
 
+const common = {
+    isMoved: false,
+    isFocused: false,
+    canMoveNow: false,
+};
+
 const pawn: (isWhite: boolean) => Piece = (isWhite) => {
     return {
         name: "pawn",
-        isMoved: false,
         isWhite: isWhite,
-        isFocused: false,
-        canMoveNow: false,
+        ...common,
     };
 };
 
 const rook: (isWhite: boolean) => Piece = (isWhite) => {
     return {
         name: "rook",
-        isMoved: false,
         isWhite: isWhite,
-        isFocused: false,
-        canMoveNow: false,
+        ...common,
     };
 };
 
 const bishop: (isWhite: boolean) => Piece = (isWhite) => {
     return {
         name: "bishop",
-        isMoved: false,
         isWhite: isWhite,
-        isFocused: false,
-        canMoveNow: false,
+        ...common,
     };
 };
 
 const knight: (isWhite: boolean) => Piece = (isWhite) => {
     return {
         name: "knight",
-        isMoved: false,
         isWhite: isWhite,
-        isFocused: false,
-        canMoveNow: false,
+        ...common,
     };
 };
 
 const queen: (isWhite: boolean) => Piece = (isWhite) => {
     return {
         name: "queen",
-        isMoved: false,
         isWhite: isWhite,
-        isFocused: false,
-        canMoveNow: false,
+        ...common,
     };
 };
 
 const king: (isWhite: boolean) => Piece = (isWhite) => {
     return {
         name: "king",
-        isMoved: false,
         isWhite: isWhite,
-        isFocused: false,
-        canMoveNow: false,
+        ...common,
     };
 };
 
 export const empty: () => Piece = () => {
     return {
         name: "empty",
-        isMoved: false,
         isWhite: false,
-        isFocused: false,
-        canMoveNow: false,
+        ...common,
     };
 };
 
@@ -169,122 +161,3 @@ export const blackSetUp: Array<Array<Piece>> = [
         rook(false),
     ],
 ];
-
-/*
-const whiteSetUp: Array<Piece> = [
-    {
-        name: "pawn",
-        isMoved: false,
-        isWhite: true,
-        column: 1,
-        row: 7,
-    },
-    {
-        name: "pawn",
-        isMoved: false,
-        isWhite: true,
-        column: 2,
-        row: 7,
-    },
-    {
-        name: "pawn",
-        isMoved: false,
-        isWhite: true,
-        column: 3,
-        row: 7,
-    },
-    {
-        name: "pawn",
-        isMoved: false,
-        isWhite: true,
-        column: 4,
-        row: 7,
-    },
-    {
-        name: "pawn",
-        isMoved: false,
-        isWhite: true,
-        column: 5,
-        row: 7,
-    },
-    {
-        name: "pawn",
-        isMoved: false,
-        isWhite: true,
-        column: 6,
-        row: 7,
-    },
-    {
-        name: "pawn",
-        isMoved: false,
-        isWhite: true,
-        column: 7,
-        row: 7,
-    },
-    {
-        name: "pawn",
-        isMoved: false,
-        isWhite: true,
-        column: 8,
-        row: 7,
-    },
-    {
-        name: "rook",
-        isMoved: false,
-        isWhite: true,
-        column: 1,
-        row: 8,
-    },
-    {
-        name: "rook",
-        isMoved: false,
-        isWhite: true,
-        column: 8,
-        row: 8,
-    },
-    {
-        name: "knight",
-        isMoved: false,
-        isWhite: true,
-        column: 2,
-        row: 8,
-    },
-    {
-        name: "knight",
-        isMoved: false,
-        isWhite: true,
-        column: 7,
-        row: 8,
-    },
-    {
-        name: "bishop",
-        isMoved: false,
-        isWhite: true,
-        column: 2,
-        row: 8,
-    },
-    {
-        name: "bishop",
-        isMoved: false,
-        isWhite: true,
-        column: 2,
-        row: 8,
-    },
-    {
-        name: "queen",
-        isMoved: false,
-        isWhite: true,
-        column: 4,
-        row: 8,
-    },
-    {
-        name: "king",
-        isMoved: false,
-        isWhite: true,
-        column: 5,
-        row: 8,
-    },
-];
-
-export { whiteSetUp };
-*/
