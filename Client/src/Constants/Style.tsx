@@ -3,7 +3,6 @@ import {
     BlackTileColor,
     focusedTileColor,
     canMoveTileColor,
-    threatenedTileColor,
 } from "Constants/Color";
 
 const common = `
@@ -21,8 +20,6 @@ const table = {
     focusedTile: `background-color: ${focusedTileColor};` + common,
 
     canMoveTile: `background-color: ${canMoveTileColor};` + common,
-
-    threatenedTile: `background-color: ${threatenedTileColor};` + common,
 };
 
 export const style = {

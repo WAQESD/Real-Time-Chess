@@ -23,6 +23,46 @@ const isEnPassant = (
     return Piece.name === "pawn" && checkLastMoveIsPawn;
 };
 
+const canRightCastling = (Pieces: Array<Array<Piece>>, column: number) => {
+    const neverMovedKing =
+        Pieces[7][column].name === "king" &&
+        Pieces[7][column].isMoved === false;
+    const neverMovedRook =
+        Pieces[7][7].name === "rook" && Pieces[7][7].isMoved === false;
+    let isEmptyBetween = true;
+    for (let c = column + 1; c < 7; c++)
+        isEmptyBetween &&= Pieces[7][c].name === "empty";
+    let isNotThreatenedBetween = true;
+    for (let c = column; c < 7; c++)
+        isNotThreatenedBetween &&= Pieces[7][c].isThreatened === false;
+    return (
+        neverMovedKing &&
+        neverMovedRook &&
+        isEmptyBetween &&
+        isNotThreatenedBetween
+    );
+};
+
+const canLeftCastling = (Pieces: Array<Array<Piece>>, column: number) => {
+    const neverMovedKing =
+        Pieces[7][column].name === "king" &&
+        Pieces[7][column].isMoved === false;
+    const neverMovedRook =
+        Pieces[7][0].name === "rook" && Pieces[7][0].isMoved === false;
+    let isEmptyBetween = true;
+    for (let c = column - 1; c > 0; c--)
+        isEmptyBetween &&= Pieces[7][c].name === "empty";
+    let isNotThreatenedBetween = true;
+    for (let c = column; c > 1; c--)
+        isNotThreatenedBetween &&= Pieces[7][c].isThreatened === false;
+    return (
+        neverMovedKing &&
+        neverMovedRook &&
+        isEmptyBetween &&
+        isNotThreatenedBetween
+    );
+};
+
 export const getCanMoveTiles = (
     focused: Position,
     Pieces: Array<Array<Piece>>,
@@ -101,6 +141,10 @@ export const getCanMoveTiles = (
                 return;
             Pieces[row + y][column + x].canMoveNow = true;
         });
+        if (canRightCastling(Pieces, column))
+            Pieces[row][column + 2].canMoveNow = true;
+        if (canLeftCastling(Pieces, column))
+            Pieces[row][column - 2].canMoveNow = true;
     } else if (
         PieceType === "queen" ||
         PieceType === "rook" ||

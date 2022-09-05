@@ -240,9 +240,15 @@ class Store {
     }
 
     moveTo(from: Position, to: Position, isWhite: boolean, pieceType: string) {
-        let isEnPassant =
+        const isEnPassant =
             pieceType === "pawn" &&
             this.Pieces[to.row][to.column].name === "empty";
+
+        const isCastling =
+            pieceType === "king" &&
+            from.row === to.row &&
+            Math.abs(from.column - to.column) === 2;
+
         runInAction(() => {
             if (this.isWhite === isWhite) this.isMyTurn = false;
             else this.isEnemyTurn = false;
@@ -293,6 +299,18 @@ class Store {
                 if (isWhite === this.isWhite)
                     this.setPiece(to.column, to.row + 1, empty());
                 else this.setPiece(to.column, to.row - 1, empty());
+            } else if (isCastling) {
+                if (from.column > to.column) {
+                    this.setPiece(to.column + 1, to.row, {
+                        ...this.Pieces[to.row][0],
+                    });
+                    this.setPiece(0, to.row, empty());
+                } else {
+                    this.setPiece(to.column - 1, to.row, {
+                        ...this.Pieces[to.row][7],
+                    });
+                    this.setPiece(7, to.row, empty());
+                }
             }
             this.setPiece(from.column, from.row, empty());
         });
