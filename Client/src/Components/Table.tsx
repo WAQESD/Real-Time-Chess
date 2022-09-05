@@ -17,7 +17,9 @@ const Table = observer(() => {
     `;
 
     const getStyleByPosition = (column: number, row: number) => {
-        if (Store.Pieces[row][column].isFocused)
+        if (Store.Pieces[row][column].isThreatened) {
+            return css(style.table.threatenedTile);
+        } else if (Store.Pieces[row][column].isFocused)
             return css(style.table.focusedTile);
         else if (Store.Pieces[row][column].canMoveNow)
             return css(style.table.canMoveTile);

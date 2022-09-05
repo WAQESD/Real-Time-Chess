@@ -6,3 +6,4 @@ export const whiteTileColor = "#f0d9b5";
 export const BlackTileColor = "#b58863";
 export const focusedTileColor = "#f8ec5b";
 export const canMoveTileColor = "#e0d030";
+export const threatenedTileColor = "#D64045";

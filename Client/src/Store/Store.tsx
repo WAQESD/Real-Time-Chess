@@ -1,12 +1,15 @@
 import { makeAutoObservable, toJS, reaction, runInAction } from "mobx";
-import { Piece, whiteSetUp, blackSetUp } from "Constants/DefaultSetting";
 import { io } from "socket.io-client";
-import { isInTable } from "Utils/isInTable";
+import {
+    isInTable,
+    flipPosition,
+    getCanMoveTiles,
+    getThreatenedTiles,
+} from "Utils";
 import { empty } from "Constants/DefaultSetting";
-import { flipPosition } from "Utils/flipPosition";
 import { Position, gameLog } from "Constants/Types";
 import { style } from "Constants/Style";
-import { getCanMoveTiles } from "Utils/getCanMoveTiles";
+import { Piece, whiteSetUp, blackSetUp } from "Constants/DefaultSetting";
 import { CountDown, GameOver, Promotion, Ready } from "Components";
 
 const ENDPOINT = "//localhost:3001/";
@@ -292,6 +295,9 @@ class Store {
                 else this.setPiece(to.column, to.row - 1, empty());
             }
             this.setPiece(from.column, from.row, empty());
+        });
+        runInAction(() => {
+            this.Pieces = getThreatenedTiles(toJS(this.Pieces), this.isWhite);
         });
     }
 

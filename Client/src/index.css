@@ -8,9 +8,14 @@
     src: url("/public/font/LAB-digital.ttf");
 }
 
+@font-face {
+    font-family: "Youtube Sans";
+    src: url("/public/font/YouTubeSansRegular.otf");
+}
+
 body {
     margin: 0;
-    font-family: "Noto Sans KR";
+    font-family: "Youtube Sans";
 }
 
 #root {

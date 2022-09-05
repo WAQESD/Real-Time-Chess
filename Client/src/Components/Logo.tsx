@@ -18,6 +18,7 @@ const Logo = ({ fontSize }: Props) => {
             <div
                 css={css`
                     font-size: ${fontSize}pt;
+                    font-weight: bold;
                     margin-bottom: 8px;
                 `}
             >
@@ -25,7 +26,7 @@ const Logo = ({ fontSize }: Props) => {
             </div>
             <div
                 css={css`
-                    font-size: ${fontSize * 1.8}pt;
+                    font-size: ${fontSize * 1.7}pt;
                 `}
             >
                 <span
@@ -34,11 +35,18 @@ const Logo = ({ fontSize }: Props) => {
                         color: white;
                         padding: 2px 8px;
                         border-radius: 4px;
+                        margin-right: 7px;
                     `}
                 >
                     Che
                 </span>
-                <span>ss</span>
+                <span
+                    css={css`
+                        font-weight: bold;
+                    `}
+                >
+                    ss
+                </span>
             </div>
         </div>
     );

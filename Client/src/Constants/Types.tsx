@@ -1,8 +1,8 @@
 export interface gameLog {
     name: string;
     isWhite: boolean;
-    from: { column: number; row: number };
-    to: { column: number; row: number };
+    from: Position;
+    to: Position;
 }
 
 export interface Position {
@@ -15,5 +15,6 @@ export interface Piece {
     isMoved: boolean;
     isWhite: boolean;
     isFocused: boolean;
+    isThreatened: boolean;
     canMoveNow: boolean;
 }

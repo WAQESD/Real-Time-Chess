@@ -3,37 +3,26 @@ import {
     BlackTileColor,
     focusedTileColor,
     canMoveTileColor,
+    threatenedTileColor,
 } from "Constants/Color";
 
-const table = {
-    whiteTile: `
-	background-color: ${whiteTileColor};
+const common = `
 	margin: 0;
 	padding: 0;
 	cursor: pointer;
-	text-align: center;`,
+	text-align: center;
+    `;
 
-    blackTile: `
-    background-color: ${BlackTileColor};
-    margin: 0;
-    padding: 0;
-    cursor: pointer;
-    text-align: center;`,
+const table = {
+    whiteTile: `background-color: ${whiteTileColor};` + common,
 
-    focusedTile: `
-    background-color: ${focusedTileColor};
-    margin: 0;
-    padding: 0;
-    cursor: pointer;
-    text-align: center;`,
+    blackTile: `background-color: ${BlackTileColor};` + common,
 
-    canMoveTile: `
-    background-color: ${canMoveTileColor};
-    margin: 0;
-    padding: 0;
-    cursor: pointer;
-    text-align: center;
-	`,
+    focusedTile: `background-color: ${focusedTileColor};` + common,
+
+    canMoveTile: `background-color: ${canMoveTileColor};` + common,
+
+    threatenedTile: `background-color: ${threatenedTileColor};` + common,
 };
 
 export const style = {

@@ -3,12 +3,14 @@ export interface Piece {
     isMoved: boolean;
     isWhite: boolean;
     isFocused: boolean;
+    isThreatened: boolean;
     canMoveNow: boolean;
 }
 
 const common = {
     isMoved: false,
     isFocused: false,
+    isThreatened: false,
     canMoveNow: false,
 };
 
