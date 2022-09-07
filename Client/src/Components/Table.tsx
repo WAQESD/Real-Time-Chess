@@ -13,13 +13,13 @@ const Table = observer(() => {
         width: ${Store.tableSize}px;
         height: ${Store.tableSize}px;
         border-collapse: collapse;
-        border: 2px solid ${Store.isMyTurn ? green : red};
+        border: 2px solid ${Store.Game.isMyTurn ? green : red};
     `;
 
     const getStyleByPosition = (column: number, row: number) => {
-        if (Store.Pieces[row][column].isFocused)
+        if (Store.Game.Pieces[row][column].isFocused)
             return css(style.table.focusedTile);
-        else if (Store.Pieces[row][column].canMoveNow)
+        else if (Store.Game.Pieces[row][column].canMoveNow)
             return css(style.table.canMoveTile);
         else
             return (column + row) % 2
@@ -28,9 +28,11 @@ const Table = observer(() => {
     };
 
     const onMouseDown = (column: number, row: number) => {
-        if (Store.Pieces[row][column].canMoveNow) Store.movePiece(column, row);
-        else if (Store.Pieces[row][column].isFocused) Store.setFocused(-1, -1);
-        else Store.setFocused(column, row);
+        if (Store.Game.Pieces[row][column].canMoveNow)
+            Store.Game.movePiece(column, row);
+        else if (Store.Game.Pieces[row][column].isFocused)
+            Store.Game.setFocused(-1, -1);
+        else Store.Game.setFocused(column, row);
     };
 
     const makeTableComponent = () => {
@@ -50,9 +52,10 @@ const Table = observer(() => {
                                         width={Store.tableSize / 10}
                                         height={Store.tableSize / 10}
                                         src={`img/Chess_${
-                                            Store.Pieces[row][column].name
+                                            Store.Game.Pieces[row][column].name
                                         }_${
-                                            Store.Pieces[row][column].isWhite
+                                            Store.Game.Pieces[row][column]
+                                                .isWhite
                                                 ? "white"
                                                 : "black"
                                         }.svg`}

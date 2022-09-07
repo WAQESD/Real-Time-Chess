@@ -29,13 +29,13 @@ const Promotion = observer(({ from, to }: Props) => {
                     isWhite ? "white" : "black"
                 }.svg`}
                 onClick={() => {
-                    Store.emitPieceMove(from, to, pieceType);
+                    Store.Game.emitPieceMove(from, to, pieceType);
                     Store.removeModal();
                 }}
             ></img>
         ));
     };
-    return <div>{seletablePieces(Store.isWhite)}</div>;
+    return <div>{seletablePieces(Store.Game.isWhite)}</div>;
 });
 
 export default Promotion;

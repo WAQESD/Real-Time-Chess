@@ -71,7 +71,9 @@ const SettingGame = observer(() => {
                 <Spacing spacing={4}></Spacing>
                 <select
                     defaultValue={3000}
-                    onChange={(event) => Store.setTurnLimit(event.target.value)}
+                    onChange={(event) =>
+                        Store.Game.setTurnLimit(event.target.value)
+                    }
                     css={selectStyle}
                     name="제한시간"
                 >

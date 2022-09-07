@@ -38,7 +38,7 @@ const Game = observer(() => {
         >
             <UserInfo
                 isRow={Store.windowHeight < Store.windowWidth}
-                isWhite={!Store.isWhite}
+                isWhite={!Store.Game.isWhite}
                 isMine={false}
                 padding={Store.infoSize / 8}
                 fontSize={Store.infoSize / 20}
@@ -46,7 +46,7 @@ const Game = observer(() => {
             <Table></Table>
             <UserInfo
                 isRow={Store.windowHeight < Store.windowWidth}
-                isWhite={Store.isWhite}
+                isWhite={Store.Game.isWhite}
                 isMine={true}
                 padding={Store.infoSize / 8}
                 fontSize={Store.infoSize / 20}

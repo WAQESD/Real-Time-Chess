@@ -1,4 +1,3 @@
-const e = require("express");
 const express = require("express");
 const app = express();
 const http = require("http");
@@ -61,8 +60,8 @@ io.on("connection", (socket) => {
         console.log(`${socket.id} disconnected`);
     });
 
-    socket.on("makeNewGame", (hostID, roomSetting) => {
-        openNewRoom(hostID, roomSetting);
+    socket.on("makeNewGame", (hostID, gameSetting) => {
+        openNewRoom(hostID, gameSetting);
     });
     socket.on("enterGame", (hostID, guestID, callback) => {
         let roomInfo = enterRoom(hostID, guestID);

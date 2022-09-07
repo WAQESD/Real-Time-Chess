@@ -78,14 +78,14 @@ const ColumnUserInfo = observer(
                     timerStyle={timerStyle}
                     fontSize={Store.infoSize / 3}
                     isTurn={
-                        isWhite === Store.isWhite
-                            ? Store.isMyTurn
-                            : Store.isEnemyTurn
+                        isWhite === Store.Game.isWhite
+                            ? Store.Game.isMyTurn
+                            : Store.Game.isEnemyTurn
                     }
                     lastTime={
-                        isWhite === Store.isWhite
-                            ? Store.myLastTime
-                            : Store.enemyLastTime
+                        isWhite === Store.Game.isWhite
+                            ? Store.Game.myLastTime
+                            : Store.Game.enemyLastTime
                     }
                 ></Timer>
             </div>
